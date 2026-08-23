@@ -127,7 +127,8 @@
   .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;flex-wrap:wrap;}
   .detail-head h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em;}
   .detail-progress{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;}
-  .reset-btn{
+  .head-actions{display:flex;gap:8px;}
+  .icon-btn{
     width:36px;height:36px;min-width:36px;
     border-radius:50%;
     background:none;
@@ -137,8 +138,44 @@
     cursor:pointer;
     transition:color .15s ease, border-color .15s ease, transform .15s ease;
   }
-  .reset-btn:hover{color:var(--fg);border-color:var(--fg);transform:rotate(-40deg);}
-  .reset-btn svg{width:16px;height:16px;}
+  .icon-btn:hover{color:var(--fg);border-color:var(--fg);}
+  .icon-btn svg{width:16px;height:16px;}
+  .reset-btn:hover{transform:rotate(-40deg);}
+  .download-btn:hover{transform:translateY(-2px);}
+
+  /* ---------- confirm modal ---------- */
+  .modal-backdrop{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.45);
+    display:flex;align-items:center;justify-content:center;
+    z-index:200;
+    padding:24px;
+    animation:fade-in .15s ease;
+  }
+  @keyframes fade-in{from{opacity:0;}to{opacity:1;}}
+  .modal{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow-2);
+    padding:24px;
+    max-width:320px;
+    width:100%;
+    text-align:center;
+  }
+  .modal p{margin:0 0 20px;font-size:14px;line-height:1.5;color:var(--fg);}
+  .modal .modal-actions{display:flex;gap:10px;justify-content:center;}
+  .modal button{
+    font-family:inherit;font-size:13px;
+    padding:9px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:opacity .15s ease, border-color .15s ease;
+  }
+  .modal .btn-cancel{background:none;border:1px solid var(--border);color:var(--fg);}
+  .modal .btn-cancel:hover{border-color:var(--fg);}
+  .modal .btn-confirm{background:var(--accent);border:1px solid var(--accent);color:var(--bg);}
+  .modal .btn-confirm:hover{opacity:.85;}
   .bar-segments{display:flex;gap:4px;height:6px;margin:18px 0 36px;}
   .bar-segments .seg{
     position:relative;height:100%;min-width:5px;
@@ -234,6 +271,46 @@
   function resetCategory(catId){
     delete state[catId];
     saveState();
+  }
+
+  function downloadText(filename, text){
+    var blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function showConfirm(message, onConfirm){
+    var backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
+    backdrop.innerHTML =
+      '<div class="modal" role="dialog" aria-modal="true">' +
+        '<p>' + escapeHtml(message) + '</p>' +
+        '<div class="modal-actions">' +
+          '<button type="button" class="btn-cancel">Отмена</button>' +
+          '<button type="button" class="btn-confirm">Сбросить</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(backdrop);
+
+    function close(){
+      document.removeEventListener("keydown", onKey);
+      backdrop.remove();
+    }
+    function onKey(e){ if(e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+
+    backdrop.addEventListener("click", function(e){ if(e.target === backdrop) close(); });
+    backdrop.querySelector(".btn-cancel").addEventListener("click", close);
+    backdrop.querySelector(".btn-confirm").addEventListener("click", function(){
+      close();
+      onConfirm();
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -345,6 +422,8 @@
         }).then(function(text){
           var parsed = parseMarkdown(text, entry.id);
           if(entry.title) parsed.title = entry.title;
+          parsed.raw = text;
+          parsed.file = entry.file;
           CATALOG[entry.id] = parsed;
         });
       }));
@@ -469,9 +548,14 @@
     head.innerHTML =
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
       '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.pct + '%)</span></div></div>' +
-      '<button class="reset-btn" type="button" aria-label="Сбросить прогресс" title="Сбросить прогресс">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>' +
-      '</button>';
+      '<div class="head-actions">' +
+        '<button class="icon-btn download-btn" type="button" aria-label="Скачать .md" title="Скачать .md">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 19h16"/></svg>' +
+        '</button>' +
+        '<button class="icon-btn reset-btn" type="button" aria-label="Сбросить прогресс" title="Сбросить прогресс">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>' +
+        '</button>' +
+      '</div>';
     app.appendChild(head);
 
     var bar = document.createElement("div");
@@ -495,10 +579,15 @@
 
     progressEls = { frac: head.querySelector("#frac"), segments: segments };
 
+    head.querySelector(".download-btn").addEventListener("click", function(){
+      downloadText(cat.file || (catId + ".md"), cat.raw || "");
+    });
+
     head.querySelector(".reset-btn").addEventListener("click", function(){
-      if(!confirm('Сбросить прогресс по разделу "' + cat.title + '"?')) return;
-      resetCategory(catId);
-      renderDetail(catId);
+      showConfirm('Сбросить прогресс по разделу «' + cat.title + '»?', function(){
+        resetCategory(catId);
+        renderDetail(catId);
+      });
     });
 
     cat.parts.forEach(function(part){
