@@ -31,6 +31,8 @@
 - [ ] Bottleneck-проблема
 - [ ] Attention в seq2seq (Bahdanau, Luong)
 
+- [ ] Курс: [Stepik — NLP](https://stepik.org/course/272087/)
+
 
 ## Токенизация и представление входа
 

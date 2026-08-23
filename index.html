@@ -107,14 +107,13 @@
   }
   .fab:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);}
   .fab svg{width:18px;height:18px;}
-  /* держим кнопки у правого края контент-блока (760px, центрирован), но не даём им уехать за экран */
+  /* держим кнопки у краёв контент-блока (760px, центрирован), но не даём им уехать за экран */
   /* 380px = половина ширины .wrap (760px), 42px = ширина кнопки, 16px = зазор до контента */
-  #backBtn, #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px)); }
-  #backBtn{top:28px;display:none;}
-  #topBtn{bottom:28px;opacity:0;pointer-events:none;}
+  #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px)); bottom:28px; opacity:0; pointer-events:none; }
   #topBtn.visible{opacity:1;pointer-events:auto;}
-  /* ниже 900px кнопка "назад" по горизонтали упирается в скачать/сброс из
-     шапки (те — в потоке, а не fixed) — уводим её вниз, под шапку */
+  #backBtn{ left:max(16px, calc(50vw - 380px - 42px - 16px)); top:28px; display:none; }
+  /* ниже 900px кнопка "назад" по горизонтали упирается в заголовок/шапку —
+     уводим её вниз, под шапку */
   @media (max-width:900px){
     #backBtn{top:92px;}
   }
@@ -210,7 +209,7 @@
 
   .item{
     display:flex;
-    align-items:flex-start;
+    align-items:center;
     gap:12px;
     padding:7px 2px;
     cursor:pointer;
@@ -220,7 +219,6 @@
     -webkit-appearance:none;
     width:17px;height:17px;
     min-width:17px;
-    margin-top:2px;
     border:1.5px solid var(--faint);
     border-radius:5px;
     display:grid;
@@ -239,9 +237,9 @@
   .item input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent);}
   .item input[type=checkbox]:checked::before{transform:scale(1);}
   .item .txt{font-size:14.5px;line-height:1.5;}
-  .item .code{color:var(--faint);font-variant-numeric:tabular-nums;margin-right:6px;font-size:13px;}
+  .item .code{color:var(--faint);opacity:.65;font-variant-numeric:tabular-nums;margin-right:6px;font-size:9px;}
   .item.checked .label{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--border);}
-  .item a{text-decoration:underline;text-decoration-color:var(--border);}
+  .item a{text-decoration:underline;text-decoration-color:var(--muted);text-underline-offset:3px;}
   .item a:hover{text-decoration-color:currentColor;}
 
   .empty{color:var(--muted);padding:40px 0;text-align:center;}
