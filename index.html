@@ -63,6 +63,11 @@
   @media (max-width:420px){
     .grid{grid-template-columns:1fr;}
   }
+  /* на узких экранах langBtn уезжает под шапку (см. #langBtn media query) —
+     даём сетке карточек отступ сверху, чтобы не перекрывалась */
+  @media (max-width:900px){
+    .grid{margin-top:44px;}
+  }
   .card{
     background:var(--card-bg);
     border:1px solid var(--border);
@@ -112,10 +117,11 @@
   #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px)); bottom:28px; opacity:0; pointer-events:none; }
   #topBtn.visible{opacity:1;pointer-events:auto;}
   #backBtn{ left:max(16px, calc(50vw - 380px - 42px - 16px)); top:28px; display:none; }
-  /* ниже 900px кнопка "назад" по горизонтали упирается в заголовок/шапку —
-     уводим её вниз, под шапку */
+  #langBtn{ right:max(16px, calc(50vw - 380px - 50px - 16px)); top:28px; width:auto; padding:0 14px; font-size:12px; font-weight:700; letter-spacing:.03em; }
+  /* ниже 900px кнопки по горизонтали упираются в заголовок/шапку — уводим вниз */
   @media (max-width:900px){
     #backBtn{top:92px;}
+    #langBtn{top:92px;}
   }
 
   .site-footer{
@@ -260,6 +266,40 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
   }
 
+  // ---------------------------------------------------------------------
+  // language: content lives in content/ru/*.md and content/en/*.md
+  // (identical structure/order, so checkbox state carries over 1:1)
+  // ---------------------------------------------------------------------
+  var LANG_KEY = "mltopics:lang";
+  var LANG = "ru";
+  try { LANG = localStorage.getItem(LANG_KEY) || "ru"; } catch(e){ LANG = "ru"; }
+
+  var STRINGS = {
+    ru: {
+      partWord: "Часть",
+      back: "К категориям",
+      top: "Наверх",
+      download: "Скачать .md",
+      reset: "Сбросить прогресс",
+      cancel: "Отмена",
+      confirmBtn: "Сбросить",
+      resetConfirm: function(title){ return 'Сбросить прогресс по разделу «' + title + '»?'; },
+      notFound: "Категория не найдена."
+    },
+    en: {
+      partWord: "Part",
+      back: "Back to categories",
+      top: "Scroll to top",
+      download: "Download .md",
+      reset: "Reset progress",
+      cancel: "Cancel",
+      confirmBtn: "Reset",
+      resetConfirm: function(title){ return "Reset progress for “" + title + "”?"; },
+      notFound: "Category not found."
+    }
+  };
+  function t(){ return STRINGS[LANG]; }
+
   function isChecked(catId, code, defaultChecked){
     var cat = state[catId];
     if(cat && Object.prototype.hasOwnProperty.call(cat, code)) return !!cat[code];
@@ -289,15 +329,15 @@
     setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
   }
 
-  function showConfirm(message, onConfirm){
+  function showConfirm(message, onConfirm, cancelLabel, confirmLabel){
     var backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
     backdrop.innerHTML =
       '<div class="modal" role="dialog" aria-modal="true">' +
         '<p>' + escapeHtml(message) + '</p>' +
         '<div class="modal-actions">' +
-          '<button type="button" class="btn-cancel">Отмена</button>' +
-          '<button type="button" class="btn-confirm">Сбросить</button>' +
+          '<button type="button" class="btn-cancel">' + escapeHtml(cancelLabel || "Cancel") + '</button>' +
+          '<button type="button" class="btn-confirm">' + escapeHtml(confirmLabel || "Reset") + '</button>' +
         '</div>' +
       '</div>';
     document.body.appendChild(backdrop);
@@ -412,20 +452,26 @@
   // ---------------------------------------------------------------------
   var CATALOG = {};
   var ORDER = [];
+  var MANIFEST = null;
 
   function loadAll(){
-    return fetch("content/manifest.json").then(function(r){
-      if(!r.ok) throw new Error("manifest fetch failed: " + r.status);
-      return r.json();
-    }).then(function(manifest){
+    var manifestPromise = MANIFEST
+      ? Promise.resolve(MANIFEST)
+      : fetch("content/manifest.json").then(function(r){
+          if(!r.ok) throw new Error("manifest fetch failed: " + r.status);
+          return r.json();
+        }).then(function(m){ MANIFEST = m; return m; });
+
+    return manifestPromise.then(function(manifest){
       ORDER = manifest.map(function(m){ return m.id; });
       return Promise.all(manifest.map(function(entry){
-        return fetch("content/" + entry.file).then(function(r){
+        return fetch("content/" + LANG + "/" + entry.file).then(function(r){
           if(!r.ok) throw new Error("fetch failed: " + entry.file);
           return r.text();
         }).then(function(text){
           var parsed = parseMarkdown(text, entry.id);
-          if(entry.title) parsed.title = entry.title;
+          var localTitle = LANG === "en" ? (entry.title_en || entry.title) : entry.title;
+          if(localTitle) parsed.title = localTitle;
           parsed.raw = text;
           parsed.file = entry.file;
           CATALOG[entry.id] = parsed;
@@ -540,7 +586,7 @@
   function renderDetail(catId){
     var cat = CATALOG[catId];
     if(!cat){
-      app.innerHTML = '<a class="back" href="#/">&larr; Категории</a><div class="empty">Категория не найдена.</div>';
+      app.innerHTML = '<a class="back" href="#/">&larr; ' + escapeHtml(t().back) + '</a><div class="empty">' + escapeHtml(t().notFound) + '</div>';
       return;
     }
 
@@ -553,10 +599,10 @@
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
       '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.pct + '%)</span></div></div>' +
       '<div class="head-actions">' +
-        '<button class="icon-btn download-btn" type="button" aria-label="Скачать .md" title="Скачать .md">' +
+        '<button class="icon-btn download-btn" type="button" aria-label="' + escapeHtml(t().download) + '" title="' + escapeHtml(t().download) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 19h16"/></svg>' +
         '</button>' +
-        '<button class="icon-btn reset-btn" type="button" aria-label="Сбросить прогресс" title="Сбросить прогресс">' +
+        '<button class="icon-btn reset-btn" type="button" aria-label="' + escapeHtml(t().reset) + '" title="' + escapeHtml(t().reset) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>' +
         '</button>' +
       '</div>';
@@ -588,10 +634,10 @@
     });
 
     head.querySelector(".reset-btn").addEventListener("click", function(){
-      showConfirm('Сбросить прогресс по разделу «' + cat.title + '»?', function(){
+      showConfirm(t().resetConfirm(cat.title), function(){
         resetCategory(catId);
         renderDetail(catId);
-      });
+      }, t().cancel, t().confirmBtn);
     });
 
     cat.parts.forEach(function(part){
@@ -599,7 +645,7 @@
       partEl.className = "part";
       if(part.title){
         var h2 = document.createElement("h2");
-        h2.textContent = "Часть " + part.code + ". " + part.title;
+        h2.textContent = t().partWord + " " + part.code + ". " + part.title;
         partEl.appendChild(h2);
       }
       part.entries.forEach(function(entry){
@@ -631,7 +677,6 @@
   backBtn.id = "backBtn";
   backBtn.className = "fab";
   backBtn.type = "button";
-  backBtn.setAttribute("aria-label", "К категориям");
   backBtn.innerHTML = ICON_LEFT;
   backBtn.addEventListener("click", function(){ location.hash = "#/"; });
   document.body.appendChild(backBtn);
@@ -640,13 +685,40 @@
   topBtn.id = "topBtn";
   topBtn.className = "fab";
   topBtn.type = "button";
-  topBtn.setAttribute("aria-label", "Наверх");
   topBtn.innerHTML = ICON_UP;
   topBtn.addEventListener("click", function(){ window.scrollTo({ top:0, behavior:"smooth" }); });
   document.body.appendChild(topBtn);
 
   window.addEventListener("scroll", function(){
     topBtn.classList.toggle("visible", window.scrollY > 400);
+  });
+
+  var langBtn = document.createElement("button");
+  langBtn.id = "langBtn";
+  langBtn.className = "fab lang-btn";
+  langBtn.type = "button";
+  document.body.appendChild(langBtn);
+
+  function refreshChrome(){
+    backBtn.setAttribute("aria-label", t().back);
+    backBtn.title = t().back;
+    topBtn.setAttribute("aria-label", t().top);
+    topBtn.title = t().top;
+    langBtn.textContent = LANG === "ru" ? "EN" : "RU";
+    langBtn.setAttribute("aria-label", LANG === "ru" ? "Switch to English" : "Переключить на русский");
+    document.documentElement.lang = LANG;
+  }
+  refreshChrome();
+
+  langBtn.addEventListener("click", function(){
+    LANG = LANG === "ru" ? "en" : "ru";
+    try { localStorage.setItem(LANG_KEY, LANG); } catch(e){}
+    refreshChrome();
+    var scrollY = window.scrollY;
+    loadAll().then(function(){
+      route();
+      window.scrollTo(0, scrollY);
+    });
   });
 
   var footer = document.createElement("div");

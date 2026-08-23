@@ -1,10 +1,50 @@
 [
-  { "id": "classic-ml", "file": "classic-ml.md", "title": "Классический ML" },
-  { "id": "deep-learning", "file": "deep-learning.md", "title": "Deep Learning" },
-  { "id": "nlp", "file": "nlp.md", "title": "NLP" },
-  { "id": "algebra", "file": "algebra.md", "title": "Алгебра" },
-  { "id": "matan", "file": "matan.md", "title": "Математический анализ" },
-  { "id": "combinatorics", "file": "combinatorics.md", "title": "Комбинаторика" },
-  { "id": "probability", "file": "probability.md", "title": "Теория вероятностей" },
-  { "id": "algorithms", "file": "algorithms.md", "title": "Алгоритмы и структуры данных" }
+  {
+    "id": "classic-ml",
+    "file": "classic-ml.md",
+    "title": "Классический ML",
+    "title_en": "Classical ML"
+  },
+  {
+    "id": "deep-learning",
+    "file": "deep-learning.md",
+    "title": "Deep Learning",
+    "title_en": "Deep Learning"
+  },
+  {
+    "id": "nlp",
+    "file": "nlp.md",
+    "title": "NLP",
+    "title_en": "NLP"
+  },
+  {
+    "id": "algebra",
+    "file": "algebra.md",
+    "title": "Алгебра",
+    "title_en": "Algebra"
+  },
+  {
+    "id": "matan",
+    "file": "matan.md",
+    "title": "Математический анализ",
+    "title_en": "Calculus"
+  },
+  {
+    "id": "combinatorics",
+    "file": "combinatorics.md",
+    "title": "Комбинаторика",
+    "title_en": "Combinatorics"
+  },
+  {
+    "id": "probability",
+    "file": "probability.md",
+    "title": "Теория вероятностей",
+    "title_en": "Probability Theory"
+  },
+  {
+    "id": "algorithms",
+    "file": "algorithms.md",
+    "title": "Алгоритмы и структуры данных",
+    "title_en": "Algorithms and Data Structures"
+  }
 ]

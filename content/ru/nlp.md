@@ -2,10 +2,10 @@
 
 ### Предобработка текста
 
-- [ ] Токенизация (word-level)
+- [ ] Токенизация
 - [ ] Нормализация регистра, стемминг vs лемматизация
 - [ ] Стоп-слова
-- [ ] N-граммы (unigram/bigram/trigram)
+- [ ] N-граммы
 
 ### Классические представления текста
 
@@ -29,9 +29,9 @@
 
 - [ ] Encoder-decoder на RNN
 - [ ] Bottleneck-проблема
-- [ ] Attention в seq2seq (Bahdanau, Luong)
+- [ ] Attention в seq2seq
 
-- [ ] Курс: [Stepik — NLP](https://stepik.org/course/272087/)
+- [ ] Курс: [Stepik — NLP]
 
 
 ## Токенизация и представление входа
@@ -50,7 +50,7 @@
 ### Эмбеддинги на входе трансформера
 
 - [ ] Token embeddings
-- [ ] Positional encoding (суммирование)
+- [ ] Позиционное кодирование
 - [ ] Weight tying
 
 ### Архитектурные решения под задачи языка
@@ -64,7 +64,7 @@
 
 ### Masked Language Modeling
 
-- [ ] Стратегия маскирования BERT (15%, 80/10/10)
+- [ ] Стратегия маскирования BERT
 - [ ] Whole word masking
 
 - [ ] Causal (autoregressive) Language Modeling
@@ -136,7 +136,7 @@
 
 ### Векторные базы и индексация
 
-- [ ] ANN (приближённый поиск соседей)
+- [ ] Приближённый поиск соседей (ANN)
 - [ ] HNSW / IVF
 
 ### Чанкинг документов
@@ -161,7 +161,7 @@
 
 ### Function calling и tool use
 
-- [ ] Механика вызова функций моделью (function calling)
+- [ ] Механика вызова функций моделью
 - [ ] Native tool use vs prompt-эмуляция
 
 ### ReAct и планирование

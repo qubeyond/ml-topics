@@ -11,7 +11,7 @@
 - [ ] Computational graph
 - [ ] Chain rule
 - [ ] Forward pass / backward pass
-- [ ] Автоматическое дифференцирование (autodiff)
+- [ ] Автоматическое дифференцирование
 
 ### Инициализация весов
 
@@ -112,7 +112,7 @@
 - [ ] Self-attention
 - [ ] Cross-attention
 
-- [ ] Причинная маска (causal mask)
+- [ ] Причинная маска
 
 ### Позиционные кодировки: абсолютные
 
@@ -149,7 +149,7 @@
 
 ### Сжатие и ускорение моделей
 
-- [ ] Квантизация (int8/int4)
+- [ ] Квантизация
 - [ ] Pruning
 - [ ] Knowledge distillation
 
