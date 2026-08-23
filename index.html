@@ -257,7 +257,18 @@
     return html;
   }
 
-  var CODE_RE = /^([IVXLCM]+(?:\.\d+)+|\d+(?:\.\d+)+)\s+(.*)$/;
+  // Коды (I, I.1, I.1.1, ...) нигде не пишутся руками в .md — их всегда
+  // выводит рендер из порядка заголовков/пунктов в файле. Так порядок можно
+  // менять местами, ничего не пересчитывая.
+  function toRoman(num){
+    var map = [[1000,"M"],[900,"CM"],[500,"D"],[400,"CD"],[100,"C"],[90,"XC"],
+               [50,"L"],[40,"XL"],[10,"X"],[9,"IX"],[5,"V"],[4,"IV"],[1,"I"]];
+    var out = "";
+    map.forEach(function(pair){
+      while(num >= pair[0]){ out += pair[1]; num -= pair[0]; }
+    });
+    return out || String(num);
+  }
 
   function parseMarkdown(src, catId){
     var lines = src.split(/\r?\n/);
@@ -265,7 +276,15 @@
     var parts = [];
     var curPart = null, curSection = null;
     var items = [];
-    var counter = 0;
+    var partN = 0;
+
+    function ensurePart(){
+      if(!curPart){
+        partN++;
+        curPart = { title:"", code: toRoman(partN), childN: 0, entries: [] };
+        parts.push(curPart);
+      }
+    }
 
     lines.forEach(function(line){
       var l = line.trim();
@@ -275,33 +294,30 @@
       if((m = /^#\s+(.*)$/.exec(l))){
         title = m[1].trim();
       } else if((m = /^##\s+(.*)$/.exec(l))){
-        curPart = { title: m[1].trim(), entries: [] };
+        partN++;
+        curPart = { title: m[1].trim(), code: toRoman(partN), childN: 0, entries: [] };
         curSection = null;
         parts.push(curPart);
       } else if((m = /^###\s+(.*)$/.exec(l))){
-        var headingText = m[1].trim();
-        var headCode = CODE_RE.exec(headingText);
-        curSection = { title: headingText, code: headCode ? headCode[1] : null, autoN: 0, items: [] };
-        if(!curPart){ curPart = { title:"", entries:[] }; parts.push(curPart); }
+        ensurePart();
+        curPart.childN++;
+        var sectionCode = curPart.code + "." + curPart.childN;
+        curSection = { title: m[1].trim(), code: sectionCode, autoN: 0, items: [] };
         curPart.entries.push({ type:"section", section: curSection });
       } else if((m = /^-\s+\[( |x|X)\]\s+(.*)$/.exec(l))){
         var defaultChecked = m[1].toLowerCase() === "x";
-        var rest = m[2].trim();
-        var codeMatch = CODE_RE.exec(rest);
-        var code, text;
-        if(codeMatch){
-          code = codeMatch[1]; text = codeMatch[2];
-        } else if(curSection && curSection.code){
-          // no explicit code: auto-number as "<секция>.<порядок>", напр. I.1 -> I.1.1, I.1.2, ...
+        var text = m[2].trim();
+        var code;
+        if(curSection){
           curSection.autoN++;
           code = curSection.code + "." + curSection.autoN;
-          text = rest;
         } else {
-          counter++; code = "item-" + counter; text = rest;
+          ensurePart();
+          curPart.childN++;
+          code = curPart.code + "." + curPart.childN;
         }
         var item = { code: code, text: text, defaultChecked: defaultChecked };
         items.push(item);
-        if(!curPart){ curPart = { title:"", entries:[] }; parts.push(curPart); }
         if(curSection){ curSection.items.push(item); }
         else { curPart.entries.push({ type:"item", item: item }); }
       }
@@ -490,7 +506,7 @@
       partEl.className = "part";
       if(part.title){
         var h2 = document.createElement("h2");
-        h2.textContent = part.title;
+        h2.textContent = "Часть " + part.code + ". " + part.title;
         partEl.appendChild(h2);
       }
       part.entries.forEach(function(entry){
@@ -498,7 +514,7 @@
           var secEl = document.createElement("div");
           secEl.className = "section";
           var h3 = document.createElement("h3");
-          h3.textContent = entry.section.title;
+          h3.textContent = entry.section.code + " " + entry.section.title;
           secEl.appendChild(h3);
           entry.section.items.forEach(function(item){
             secEl.appendChild(renderItem(catId, item));
