@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ML Topics — чек-лист</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%91%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#ffffff;
@@ -37,36 +40,41 @@
   body{
     background:var(--bg);
     color:var(--fg);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
   }
   a{color:inherit;text-decoration:none;}
-  .wrap{max-width:1040px;margin:0 auto;padding:48px 24px 96px;}
+  .wrap{max-width:760px;margin:0 auto;padding:48px 24px 96px;}
 
   /* ---------- header ---------- */
-  header.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:36px;gap:16px;flex-wrap:wrap;}
-  header.top h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0;}
-  header.top .sub{color:var(--muted);font-size:13px;}
+  header.top{text-align:center;margin-bottom:36px;}
+  header.top h1{font-size:20px;font-weight:700;letter-spacing:-.01em;margin:0;}
 
   /* ---------- home grid ---------- */
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
-    gap:18px;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+  }
+  @media (max-width:640px){
+    .grid{grid-template-columns:repeat(2,1fr);}
+  }
+  @media (max-width:420px){
+    .grid{grid-template-columns:1fr;}
   }
   .card{
     background:var(--card-bg);
     border:1px solid var(--border);
     border-radius:16px;
-    padding:22px 22px 20px;
+    padding:18px 18px 16px;
     box-shadow:var(--shadow-1);
     cursor:pointer;
     transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
     display:flex;
     flex-direction:column;
-    gap:14px;
-    min-height:120px;
+    justify-content:space-between;
+    height:150px;
   }
   .card:hover, .card:focus-visible{
     transform:translateY(-4px);
@@ -74,15 +82,36 @@
     border-color:transparent;
     outline:none;
   }
-  .card h2{font-size:17px;font-weight:600;margin:0;letter-spacing:-.01em;}
-  .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);}
+  .card h2{
+    font-size:14.5px;font-weight:600;margin:0;letter-spacing:-.01em;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);}
   .card .meta .pct{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg);}
   .bar{height:4px;border-radius:999px;background:var(--track);overflow:hidden;}
   .bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
 
+  /* ---------- floating nav buttons ---------- */
+  .fab{
+    position:fixed;
+    width:42px;height:42px;
+    border-radius:50%;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    box-shadow:var(--shadow-1);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    color:var(--fg);
+    transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    z-index:50;
+  }
+  .fab:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);}
+  .fab svg{width:18px;height:18px;}
+  #backBtn{top:28px;left:28px;display:none;}
+  #topBtn{bottom:28px;right:28px;opacity:0;pointer-events:none;}
+  #topBtn.visible{opacity:1;pointer-events:auto;}
+
   /* ---------- detail page ---------- */
-  .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-bottom:18px;transition:color .15s ease;}
-  .back:hover{color:var(--fg);}
   .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;flex-wrap:wrap;}
   .detail-head h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em;}
   .detail-progress{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;}
@@ -90,15 +119,20 @@
   .reset-btn:hover{color:var(--fg);border-color:var(--fg);}
   .bar.big{height:6px;margin:18px 0 36px;}
 
-  .part{margin-bottom:34px;}
+  .part{
+    margin-bottom:22px;
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:20px 22px;
+    background:var(--card-bg);
+    box-shadow:var(--shadow-1);
+  }
   .part > h2{
     font-size:12px;
     text-transform:uppercase;
     letter-spacing:.08em;
     color:var(--muted);
     font-weight:700;
-    border-top:1px solid var(--border);
-    padding-top:10px;
     margin:0 0 14px;
   }
   .section{margin:18px 0 6px;}
@@ -108,11 +142,9 @@
     display:flex;
     align-items:flex-start;
     gap:12px;
-    padding:9px 2px;
-    border-bottom:1px dashed var(--border);
+    padding:7px 2px;
     cursor:pointer;
   }
-  .item:last-child{border-bottom:none;}
   .item input[type=checkbox]{
     appearance:none;
     -webkit-appearance:none;
@@ -286,9 +318,7 @@
   function renderHome(){
     var head = document.createElement("header");
     head.className = "top";
-    head.innerHTML =
-      '<h1>ML Topics</h1>' +
-      '<div class="sub">' + ORDER.length + ' тем · чек-лист по ML / DL / NLP / матеше</div>';
+    head.innerHTML = '<h1>ML Topics</h1>';
 
     var grid = document.createElement("div");
     grid.className = "grid";
@@ -362,12 +392,6 @@
 
     app.innerHTML = "";
 
-    var back = document.createElement("a");
-    back.className = "back";
-    back.href = "#/";
-    back.innerHTML = "&larr; Категории";
-    app.appendChild(back);
-
     var head = document.createElement("div");
     head.className = "detail-head";
     var p = progressFor(catId);
@@ -420,10 +444,39 @@
   }
 
   // ---------------------------------------------------------------------
+  // floating nav buttons (back / scroll-to-top)
+  // ---------------------------------------------------------------------
+  var ICON_LEFT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+  var ICON_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>';
+
+  var backBtn = document.createElement("button");
+  backBtn.id = "backBtn";
+  backBtn.className = "fab";
+  backBtn.type = "button";
+  backBtn.setAttribute("aria-label", "К категориям");
+  backBtn.innerHTML = ICON_LEFT;
+  backBtn.addEventListener("click", function(){ location.hash = "#/"; });
+  document.body.appendChild(backBtn);
+
+  var topBtn = document.createElement("button");
+  topBtn.id = "topBtn";
+  topBtn.className = "fab";
+  topBtn.type = "button";
+  topBtn.setAttribute("aria-label", "Наверх");
+  topBtn.innerHTML = ICON_UP;
+  topBtn.addEventListener("click", function(){ window.scrollTo({ top:0, behavior:"smooth" }); });
+  document.body.appendChild(topBtn);
+
+  window.addEventListener("scroll", function(){
+    topBtn.classList.toggle("visible", window.scrollY > 400);
+  });
+
+  // ---------------------------------------------------------------------
   // router
   // ---------------------------------------------------------------------
   function route(){
     var hash = location.hash.replace(/^#\/?/, "");
+    backBtn.style.display = hash ? "flex" : "none";
     if(!hash){ renderHome(); return; }
     renderDetail(hash);
   }
