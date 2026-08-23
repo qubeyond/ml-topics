@@ -252,7 +252,9 @@
         curSection = null;
         parts.push(curPart);
       } else if((m = /^###\s+(.*)$/.exec(l))){
-        curSection = { title: m[1].trim(), items: [] };
+        var headingText = m[1].trim();
+        var headCode = CODE_RE.exec(headingText);
+        curSection = { title: headingText, code: headCode ? headCode[1] : null, autoN: 0, items: [] };
         if(!curPart){ curPart = { title:"", entries:[] }; parts.push(curPart); }
         curPart.entries.push({ type:"section", section: curSection });
       } else if((m = /^-\s+\[( |x|X)\]\s+(.*)$/.exec(l))){
@@ -260,8 +262,16 @@
         var rest = m[2].trim();
         var codeMatch = CODE_RE.exec(rest);
         var code, text;
-        if(codeMatch){ code = codeMatch[1]; text = codeMatch[2]; }
-        else { counter++; code = "item-" + counter; text = rest; }
+        if(codeMatch){
+          code = codeMatch[1]; text = codeMatch[2];
+        } else if(curSection && curSection.code){
+          // no explicit code: auto-number as "<секция>.<порядок>", напр. I.1 -> I.1.1, I.1.2, ...
+          curSection.autoN++;
+          code = curSection.code + "." + curSection.autoN;
+          text = rest;
+        } else {
+          counter++; code = "item-" + counter; text = rest;
+        }
         var item = { code: code, text: text, defaultChecked: defaultChecked };
         items.push(item);
         if(!curPart){ curPart = { title:"", entries:[] }; parts.push(curPart); }
