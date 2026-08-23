@@ -108,10 +108,16 @@
   .fab:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);}
   .fab svg{width:18px;height:18px;}
   /* держим кнопки у правого края контент-блока (760px, центрирован), но не даём им уехать за экран */
-  #backBtn, #topBtn{ right:max(16px, calc(50vw - 396px)); }
+  /* 380px = половина ширины .wrap (760px), 42px = ширина кнопки, 16px = зазор до контента */
+  #backBtn, #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px)); }
   #backBtn{top:28px;display:none;}
   #topBtn{bottom:28px;opacity:0;pointer-events:none;}
   #topBtn.visible{opacity:1;pointer-events:auto;}
+  /* ниже 900px кнопка "назад" по горизонтали упирается в скачать/сброс из
+     шапки (те — в потоке, а не fixed) — уводим её вниз, под шапку */
+  @media (max-width:900px){
+    #backBtn{top:92px;}
+  }
 
   .site-footer{
     position:fixed;
