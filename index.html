@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ML Topics — чек-лист</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%91%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --bg:#ffffff;
+    --fg:#111111;
+    --muted:#6b6b6b;
+    --faint:#9a9a9a;
+    --border:#e7e7e7;
+    --card-bg:#ffffff;
+    --shadow-1:0 1px 2px rgba(0,0,0,.04), 0 1px 6px rgba(0,0,0,.05);
+    --shadow-2:0 10px 30px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
+    --accent:#111111;
+    --track:#eeeeee;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0b0b0c;
+      --fg:#f3f3f3;
+      --muted:#a3a3a3;
+      --faint:#6f6f6f;
+      --border:#232323;
+      --card-bg:#131314;
+      --shadow-1:0 1px 2px rgba(0,0,0,.4), 0 1px 6px rgba(0,0,0,.3);
+      --shadow-2:0 10px 30px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.4);
+      --accent:#f3f3f3;
+      --track:#232323;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:1040px;margin:0 auto;padding:48px 24px 96px;}
+
+  /* ---------- header ---------- */
+  header.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:36px;gap:16px;flex-wrap:wrap;}
+  header.top h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0;}
+  header.top .sub{color:var(--muted);font-size:13px;}
+
+  /* ---------- home grid ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(230px,1fr));
+    gap:18px;
+  }
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:22px 22px 20px;
+    box-shadow:var(--shadow-1);
+    cursor:pointer;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    min-height:120px;
+  }
+  .card:hover, .card:focus-visible{
+    transform:translateY(-4px);
+    box-shadow:var(--shadow-2);
+    border-color:transparent;
+    outline:none;
+  }
+  .card h2{font-size:17px;font-weight:600;margin:0;letter-spacing:-.01em;}
+  .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);}
+  .card .meta .pct{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg);}
+  .bar{height:4px;border-radius:999px;background:var(--track);overflow:hidden;}
+  .bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
+
+  /* ---------- detail page ---------- */
+  .back{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-bottom:18px;transition:color .15s ease;}
+  .back:hover{color:var(--fg);}
+  .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;flex-wrap:wrap;}
+  .detail-head h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em;}
+  .detail-progress{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;}
+  .reset-btn{font-size:12px;color:var(--faint);border:1px solid var(--border);background:none;border-radius:999px;padding:6px 14px;cursor:pointer;transition:color .15s ease, border-color .15s ease;}
+  .reset-btn:hover{color:var(--fg);border-color:var(--fg);}
+  .bar.big{height:6px;margin:18px 0 36px;}
+
+  .part{margin-bottom:34px;}
+  .part > h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    font-weight:700;
+    border-top:1px solid var(--border);
+    padding-top:10px;
+    margin:0 0 14px;
+  }
+  .section{margin:18px 0 6px;}
+  .section > h3{font-size:14px;font-weight:600;margin:0 0 8px;color:var(--fg);}
+
+  .item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:9px 2px;
+    border-bottom:1px dashed var(--border);
+    cursor:pointer;
+  }
+  .item:last-child{border-bottom:none;}
+  .item input[type=checkbox]{
+    appearance:none;
+    -webkit-appearance:none;
+    width:17px;height:17px;
+    min-width:17px;
+    margin-top:2px;
+    border:1.5px solid var(--faint);
+    border-radius:5px;
+    display:grid;
+    place-content:center;
+    cursor:pointer;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .item input[type=checkbox]::before{
+    content:"";
+    width:9px;height:9px;
+    transform:scale(0);
+    transition:transform .12s ease;
+    box-shadow:inset 1em 1em var(--bg);
+    clip-path:polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 45% 62%);
+  }
+  .item input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent);}
+  .item input[type=checkbox]:checked::before{transform:scale(1);}
+  .item .txt{font-size:14.5px;line-height:1.5;}
+  .item .code{color:var(--faint);font-variant-numeric:tabular-nums;margin-right:6px;font-size:13px;}
+  .item.checked .label{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--border);}
+  .item a{text-decoration:underline;text-decoration-color:var(--border);}
+  .item a:hover{text-decoration-color:currentColor;}
+
+  .empty{color:var(--muted);padding:40px 0;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "mltopics:v1";
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e){ state = {}; }
+
+  function saveState(){
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+  }
+
+  function isChecked(catId, code, defaultChecked){
+    var cat = state[catId];
+    if(cat && Object.prototype.hasOwnProperty.call(cat, code)) return !!cat[code];
+    return !!defaultChecked;
+  }
+
+  function setChecked(catId, code, value){
+    if(!state[catId]) state[catId] = {};
+    state[catId][code] = value;
+    saveState();
+  }
+
+  function resetCategory(catId){
+    delete state[catId];
+    saveState();
+  }
+
+  // ---------------------------------------------------------------------
+  // Minimal markdown parser tailored to our checklist format:
+  //   # Title
+  //   ## Part
+  //   ### Section
+  //   - [ ] CODE text   (checkbox item, code = leading "1.1" / "I.1.1" token)
+  // ---------------------------------------------------------------------
+  function escapeHtml(s){
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function inlineMd(text){
+    var html = escapeHtml(text);
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function(_, label, url){
+      return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>';
+    });
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+    return html;
+  }
+
+  var CODE_RE = /^([IVXLCM]+(?:\.\d+)+|\d+(?:\.\d+)+)\s+(.*)$/;
+
+  function parseMarkdown(src, catId){
+    var lines = src.split(/\r?\n/);
+    var title = catId;
+    var parts = [];
+    var curPart = null, curSection = null;
+    var items = [];
+    var counter = 0;
+
+    lines.forEach(function(line){
+      var l = line.trim();
+      if(!l) return;
+
+      var m;
+      if((m = /^#\s+(.*)$/.exec(l))){
+        title = m[1].trim();
+      } else if((m = /^##\s+(.*)$/.exec(l))){
+        curPart = { title: m[1].trim(), entries: [] };
+        curSection = null;
+        parts.push(curPart);
+      } else if((m = /^###\s+(.*)$/.exec(l))){
+        curSection = { title: m[1].trim(), items: [] };
+        if(!curPart){ curPart = { title:"", entries:[] }; parts.push(curPart); }
+        curPart.entries.push({ type:"section", section: curSection });
+      } else if((m = /^-\s+\[( |x|X)\]\s+(.*)$/.exec(l))){
+        var defaultChecked = m[1].toLowerCase() === "x";
+        var rest = m[2].trim();
+        var codeMatch = CODE_RE.exec(rest);
+        var code, text;
+        if(codeMatch){ code = codeMatch[1]; text = codeMatch[2]; }
+        else { counter++; code = "item-" + counter; text = rest; }
+        var item = { code: code, text: text, defaultChecked: defaultChecked };
+        items.push(item);
+        if(!curPart){ curPart = { title:"", entries:[] }; parts.push(curPart); }
+        if(curSection){ curSection.items.push(item); }
+        else { curPart.entries.push({ type:"item", item: item }); }
+      }
+    });
+
+    return { id: catId, title: title, parts: parts, items: items };
+  }
+
+  // ---------------------------------------------------------------------
+  // data loading
+  // ---------------------------------------------------------------------
+  var CATALOG = {};
+  var ORDER = [];
+
+  function loadAll(){
+    return fetch("content/manifest.json").then(function(r){
+      if(!r.ok) throw new Error("manifest fetch failed: " + r.status);
+      return r.json();
+    }).then(function(manifest){
+      ORDER = manifest.map(function(m){ return m.id; });
+      return Promise.all(manifest.map(function(entry){
+        return fetch("content/" + entry.file).then(function(r){
+          if(!r.ok) throw new Error("fetch failed: " + entry.file);
+          return r.text();
+        }).then(function(text){
+          var parsed = parseMarkdown(text, entry.id);
+          if(entry.title) parsed.title = entry.title;
+          CATALOG[entry.id] = parsed;
+        });
+      }));
+    });
+  }
+
+  function progressFor(catId){
+    var cat = CATALOG[catId];
+    if(!cat) return { done:0, total:0, pct:0 };
+    var total = cat.items.length;
+    var done = 0;
+    cat.items.forEach(function(it){
+      if(isChecked(catId, it.code, it.defaultChecked)) done++;
+    });
+    var pct = total ? Math.round(done / total * 100) : 0;
+    return { done: done, total: total, pct: pct };
+  }
+
+  // ---------------------------------------------------------------------
+  // rendering
+  // ---------------------------------------------------------------------
+  var app = document.getElementById("app");
+
+  function renderHome(){
+    var head = document.createElement("header");
+    head.className = "top";
+    head.innerHTML =
+      '<h1>ML Topics</h1>' +
+      '<div class="sub">' + ORDER.length + ' тем · чек-лист по ML / DL / NLP / матеше</div>';
+
+    var grid = document.createElement("div");
+    grid.className = "grid";
+
+    ORDER.forEach(function(id){
+      var cat = CATALOG[id];
+      if(!cat) return;
+      var p = progressFor(id);
+      var card = document.createElement("div");
+      card.className = "card";
+      card.tabIndex = 0;
+      card.innerHTML =
+        '<h2>' + escapeHtml(cat.title) + '</h2>' +
+        '<div>' +
+          '<div class="meta"><span>' + p.done + ' / ' + p.total + '</span><span class="pct">' + p.pct + '%</span></div>' +
+          '<div class="bar"><i style="width:' + p.pct + '%"></i></div>' +
+        '</div>';
+      function go(){ location.hash = "#/" + id; }
+      card.addEventListener("click", go);
+      card.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } });
+      grid.appendChild(card);
+    });
+
+    app.innerHTML = "";
+    app.appendChild(head);
+    app.appendChild(grid);
+  }
+
+  function renderItem(catId, item){
+    var row = document.createElement("label");
+    row.className = "item";
+    var checked = isChecked(catId, item.code, item.defaultChecked);
+    if(checked) row.classList.add("checked");
+
+    var cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = checked;
+
+    var label = document.createElement("span");
+    label.className = "txt label";
+    label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' + inlineMd(item.text);
+
+    row.appendChild(cb);
+    row.appendChild(label);
+
+    cb.addEventListener("change", function(){
+      setChecked(catId, item.code, cb.checked);
+      row.classList.toggle("checked", cb.checked);
+      updateDetailProgress(catId);
+    });
+
+    return row;
+  }
+
+  var progressEls = null;
+
+  function updateDetailProgress(catId){
+    var p = progressFor(catId);
+    if(progressEls){
+      progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.pct + "%)";
+      progressEls.bar.style.width = p.pct + "%";
+    }
+  }
+
+  function renderDetail(catId){
+    var cat = CATALOG[catId];
+    if(!cat){
+      app.innerHTML = '<a class="back" href="#/">&larr; Категории</a><div class="empty">Категория не найдена.</div>';
+      return;
+    }
+
+    app.innerHTML = "";
+
+    var back = document.createElement("a");
+    back.className = "back";
+    back.href = "#/";
+    back.innerHTML = "&larr; Категории";
+    app.appendChild(back);
+
+    var head = document.createElement("div");
+    head.className = "detail-head";
+    var p = progressFor(catId);
+    head.innerHTML =
+      '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
+      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.pct + '%)</span></div></div>' +
+      '<button class="reset-btn" type="button">Сбросить</button>';
+    app.appendChild(head);
+
+    var bar = document.createElement("div");
+    bar.className = "bar big";
+    var barInner = document.createElement("i");
+    barInner.style.width = p.pct + "%";
+    bar.appendChild(barInner);
+    app.appendChild(bar);
+
+    progressEls = { frac: head.querySelector("#frac"), bar: barInner };
+
+    head.querySelector(".reset-btn").addEventListener("click", function(){
+      if(!confirm('Сбросить прогресс по разделу "' + cat.title + '"?')) return;
+      resetCategory(catId);
+      renderDetail(catId);
+    });
+
+    cat.parts.forEach(function(part){
+      var partEl = document.createElement("div");
+      partEl.className = "part";
+      if(part.title){
+        var h2 = document.createElement("h2");
+        h2.textContent = part.title;
+        partEl.appendChild(h2);
+      }
+      part.entries.forEach(function(entry){
+        if(entry.type === "section"){
+          var secEl = document.createElement("div");
+          secEl.className = "section";
+          var h3 = document.createElement("h3");
+          h3.textContent = entry.section.title;
+          secEl.appendChild(h3);
+          entry.section.items.forEach(function(item){
+            secEl.appendChild(renderItem(catId, item));
+          });
+          partEl.appendChild(secEl);
+        } else {
+          partEl.appendChild(renderItem(catId, entry.item));
+        }
+      });
+      app.appendChild(partEl);
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // router
+  // ---------------------------------------------------------------------
+  function route(){
+    var hash = location.hash.replace(/^#\/?/, "");
+    if(!hash){ renderHome(); return; }
+    renderDetail(hash);
+  }
+
+  window.addEventListener("hashchange", route);
+
+  loadAll().then(route).catch(function(err){
+    app.innerHTML = '<div class="empty">Не удалось загрузить чек-листы.<br>' + escapeHtml(String(err)) + '</div>';
+    console.error(err);
+  });
+})();
+</script>
+</body>
+</html>

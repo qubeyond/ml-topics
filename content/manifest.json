@@ -1,0 +1,10 @@
+[
+  { "id": "classic-ml", "file": "classic-ml.md", "title": "Классический ML" },
+  { "id": "deep-learning", "file": "deep-learning.md", "title": "Deep Learning" },
+  { "id": "nlp", "file": "nlp.md", "title": "NLP" },
+  { "id": "algebra", "file": "algebra.md", "title": "Алгебра" },
+  { "id": "matan", "file": "matan.md", "title": "Математический анализ" },
+  { "id": "combinatorics", "file": "combinatorics.md", "title": "Комбинаторика" },
+  { "id": "probability", "file": "probability.md", "title": "Теория вероятностей" },
+  { "id": "algorithms", "file": "algorithms.md", "title": "Алгоритмы и структуры данных" }
+]
