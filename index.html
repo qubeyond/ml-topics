@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ML Topics — чек-лист</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%98%91%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<title>ML Topics</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%92%8E%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -107,17 +107,44 @@
   }
   .fab:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);}
   .fab svg{width:18px;height:18px;}
-  #backBtn{top:28px;left:28px;display:none;}
-  #topBtn{bottom:28px;right:28px;opacity:0;pointer-events:none;}
+  /* держим кнопки у правого края контент-блока (760px, центрирован), но не даём им уехать за экран */
+  #backBtn, #topBtn{ right:max(16px, calc(50vw - 396px)); }
+  #backBtn{top:28px;display:none;}
+  #topBtn{bottom:28px;opacity:0;pointer-events:none;}
   #topBtn.visible{opacity:1;pointer-events:auto;}
+
+  .site-footer{
+    position:fixed;
+    left:20px;bottom:20px;
+    font-size:11.5px;
+    color:var(--faint);
+    z-index:40;
+  }
+  .site-footer a{transition:color .15s ease;}
+  .site-footer a:hover{color:var(--fg);}
 
   /* ---------- detail page ---------- */
   .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;flex-wrap:wrap;}
   .detail-head h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em;}
   .detail-progress{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums;}
-  .reset-btn{font-size:12px;color:var(--faint);border:1px solid var(--border);background:none;border-radius:999px;padding:6px 14px;cursor:pointer;transition:color .15s ease, border-color .15s ease;}
-  .reset-btn:hover{color:var(--fg);border-color:var(--fg);}
-  .bar.big{height:6px;margin:18px 0 36px;}
+  .reset-btn{
+    width:36px;height:36px;min-width:36px;
+    border-radius:50%;
+    background:none;
+    border:1px solid var(--border);
+    color:var(--faint);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:color .15s ease, border-color .15s ease, transform .15s ease;
+  }
+  .reset-btn:hover{color:var(--fg);border-color:var(--fg);transform:rotate(-40deg);}
+  .reset-btn svg{width:16px;height:16px;}
+  .bar-segments{display:flex;gap:4px;height:6px;margin:18px 0 36px;}
+  .bar-segments .seg{
+    position:relative;height:100%;min-width:5px;
+    border-radius:999px;background:var(--track);overflow:hidden;
+  }
+  .bar-segments .seg > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
 
   .part{
     margin-bottom:22px;
@@ -320,6 +347,21 @@
     return { done: done, total: total, pct: pct };
   }
 
+  function partItems(part){
+    var out = [];
+    part.entries.forEach(function(entry){
+      if(entry.type === "section") out = out.concat(entry.section.items);
+      else out.push(entry.item);
+    });
+    return out;
+  }
+
+  function progressForItems(catId, items){
+    var total = items.length, done = 0;
+    items.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) done++; });
+    return { done: done, total: total, pct: total ? Math.round(done / total * 100) : 0 };
+  }
+
   // ---------------------------------------------------------------------
   // rendering
   // ---------------------------------------------------------------------
@@ -386,11 +428,14 @@
   var progressEls = null;
 
   function updateDetailProgress(catId){
+    var cat = CATALOG[catId];
     var p = progressFor(catId);
-    if(progressEls){
-      progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.pct + "%)";
-      progressEls.bar.style.width = p.pct + "%";
-    }
+    if(!progressEls || !cat) return;
+    progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.pct + "%)";
+    progressEls.segments.forEach(function(seg){
+      var sp = progressForItems(catId, seg.items);
+      seg.fill.style.width = sp.pct + "%";
+    });
   }
 
   function renderDetail(catId){
@@ -408,17 +453,31 @@
     head.innerHTML =
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
       '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.pct + '%)</span></div></div>' +
-      '<button class="reset-btn" type="button">Сбросить</button>';
+      '<button class="reset-btn" type="button" aria-label="Сбросить прогресс" title="Сбросить прогресс">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>' +
+      '</button>';
     app.appendChild(head);
 
     var bar = document.createElement("div");
-    bar.className = "bar big";
-    var barInner = document.createElement("i");
-    barInner.style.width = p.pct + "%";
-    bar.appendChild(barInner);
+    bar.className = "bar-segments";
+    var segments = [];
+    cat.parts.forEach(function(part){
+      var items = partItems(part);
+      if(!items.length) return;
+      var sp = progressForItems(catId, items);
+      var seg = document.createElement("div");
+      seg.className = "seg";
+      seg.style.flex = items.length + " 1 0";
+      seg.title = (part.title || cat.title) + ": " + sp.done + " / " + sp.total;
+      var fill = document.createElement("i");
+      fill.style.width = sp.pct + "%";
+      seg.appendChild(fill);
+      bar.appendChild(seg);
+      segments.push({ items: items, fill: fill });
+    });
     app.appendChild(bar);
 
-    progressEls = { frac: head.querySelector("#frac"), bar: barInner };
+    progressEls = { frac: head.querySelector("#frac"), segments: segments };
 
     head.querySelector(".reset-btn").addEventListener("click", function(){
       if(!confirm('Сбросить прогресс по разделу "' + cat.title + '"?')) return;
@@ -480,6 +539,11 @@
   window.addEventListener("scroll", function(){
     topBtn.classList.toggle("visible", window.scrollY > 400);
   });
+
+  var footer = document.createElement("div");
+  footer.className = "site-footer";
+  footer.innerHTML = '<a href="https://github.com/qubeyond" target="_blank" rel="noopener">github.com/qubeyond</a>';
+  document.body.appendChild(footer);
 
   // ---------------------------------------------------------------------
   // router
