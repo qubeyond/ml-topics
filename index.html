@@ -28,6 +28,8 @@
     --shadow-2:0 10px 30px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.06);
     --accent:#111111;
     --track:#eeeeee;
+    --research:#7c6fd6;
+    --research-track:#efedfb;
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -41,6 +43,8 @@
       --shadow-2:0 10px 30px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.4);
       --accent:#f3f3f3;
       --track:#232323;
+      --research:#a99ee8;
+      --research-track:#221f34;
     }
   }
   *{box-sizing:border-box;}
@@ -80,10 +84,10 @@
   @media (max-width:420px){
     .grid{grid-template-columns:1fr;}
   }
-  /* на узких экранах langBtn уезжает под шапку (см. #langBtn media query) —
-     даём сетке карточек отступ сверху, чтобы не перекрывалась */
-  @media (max-width:900px){
-    .grid{margin-top:44px;}
+  /* на мобильных сверху уже футер (слева) и settingsBtn (справа) — даём
+     сетке карточек небольшой отступ, чтобы не жалась к ним вплотную */
+  @media (max-width:640px){
+    .grid{margin-top:20px;}
   }
   .card{
     background:var(--card-bg);
@@ -128,17 +132,21 @@
     z-index:50;
   }
   .fab:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);}
-  .fab svg{width:18px;height:18px;}
+  .fab svg{width:18px;height:18px;flex-shrink:0;}
   /* держим кнопки у краёв контент-блока (760px, центрирован), но не даём им уехать за экран */
   /* 380px = половина ширины .wrap (760px), 42px = ширина кнопки, 16px = зазор до контента */
   #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px + env(safe-area-inset-right))); bottom:max(28px, calc(28px + env(safe-area-inset-bottom))); opacity:0; pointer-events:none; }
   #topBtn.visible{opacity:1;pointer-events:auto;}
   #backBtn{ left:max(16px, calc(50vw - 380px - 42px - 16px + env(safe-area-inset-left))); top:max(28px, calc(28px + env(safe-area-inset-top))); display:none; }
-  #langBtn{ right:max(16px, calc(50vw - 380px - 50px - 16px + env(safe-area-inset-right))); top:max(28px, calc(28px + env(safe-area-inset-top))); width:auto; padding:0 14px; font-size:12px; font-weight:700; letter-spacing:.03em; }
-  /* ниже 900px кнопки по горизонтали упираются в заголовок/шапку — уводим вниз */
+  /* settingsBtn — та же круглая .fab, только справа; видна лишь на главном экране (см. route()) */
+  #settingsBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px + env(safe-area-inset-right))); top:max(28px, calc(28px + env(safe-area-inset-top))); }
+  /* ниже 900px кнопка "назад" по горизонтали упирается в заголовок/шапку — уводим вниз */
   @media (max-width:900px){
     #backBtn{top:max(92px, calc(92px + env(safe-area-inset-top)));}
-    #langBtn{top:max(92px, calc(92px + env(safe-area-inset-top)));}
+  }
+  /* на мобильных экранах у браузера есть свой back — наша кнопка только мешает и налезает на карточки */
+  @media (max-width:640px){
+    #backBtn{display:none !important;}
   }
 
   .site-footer{
@@ -152,38 +160,48 @@
   }
   .site-footer a{transition:color .15s ease;}
   .site-footer a:hover{color:var(--fg);}
-  .site-footer .sep{color:var(--border);}
-  .site-footer .sync-link{
-    font-family:inherit;font-size:11.5px;color:var(--faint);
-    background:none;border:none;padding:0;cursor:pointer;
-    transition:color .15s ease;
+  /* на мобильных переносим футер наверх (снизу его перекрывает клавиатура/системная навигация) */
+  @media (max-width:640px){
+    .site-footer{
+      left:max(20px, calc(20px + env(safe-area-inset-left)));
+      top:max(28px, calc(28px + env(safe-area-inset-top)));
+      bottom:auto;
+    }
   }
-  .site-footer .sync-link:hover{color:var(--fg);}
-  .site-footer .sync-link.on{color:var(--muted);}
-  .site-footer .sync-link.on::before{content:"● ";font-size:8px;vertical-align:1px;}
-  .site-footer .sync-link.err{color:var(--fg);}
-  .site-footer .sync-link.err::before{content:"● ";color:var(--fg);font-size:8px;vertical-align:1px;}
 
-  /* ---------- sync modal ---------- */
-  .sync-modal{max-width:380px;text-align:left;}
-  .sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
-  .sync-head h3{font-size:16px;margin:0;letter-spacing:-.01em;}
-  .sync-head .icon-btn{width:28px;height:28px;min-width:28px;flex:none;}
-  .sync-head .icon-btn svg{width:14px;height:14px;}
-  .sync-modal p{margin:0 0 12px;font-size:12.5px;line-height:1.55;color:var(--muted);text-align:left;}
-  .sync-modal a{text-decoration:underline;text-decoration-color:var(--muted);color:var(--fg);}
+  /* ---------- settings modal (язык + синк) ---------- */
+  .settings-modal{max-width:460px;text-align:left;padding:26px;}
+  .sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
+  .sync-head h3{font-size:17px;margin:0;letter-spacing:-.01em;}
+  .sync-head .icon-btn{width:32px;height:32px;min-width:32px;flex:none;border-radius:50%;}
+  .sync-head .icon-btn svg{width:15px;height:15px;display:block;flex-shrink:0;}
+  .settings-section{margin-bottom:20px;}
+  .settings-section:last-child{margin-bottom:0;}
+  .settings-label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin-bottom:10px;}
+  .settings-divider{height:1px;background:var(--border);margin:20px 0;}
+  .lang-toggle{display:flex;gap:8px;}
+  .lang-opt{
+    flex:1;font-family:inherit;font-size:13px;font-weight:700;
+    padding:9px 0;border-radius:10px;border:1px solid var(--border);
+    background:none;color:var(--muted);cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .lang-opt.active{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+  .lang-opt:not(.active):hover{border-color:var(--fg);color:var(--fg);}
+  .settings-modal p{margin:0 0 12px;font-size:12.5px;line-height:1.55;color:var(--muted);text-align:left;}
+  .settings-modal a{text-decoration:underline;text-decoration-color:var(--muted);color:var(--fg);}
   .sync-token-label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
   .sync-token-input{
     display:block;width:100%;margin-top:6px;
     font-family:inherit;font-size:13px;color:var(--fg);
-    background:var(--bg);border:1px solid var(--border);border-radius:8px;
+    background:var(--bg);border:1px solid var(--border);border-radius:10px;
     padding:9px 10px;box-sizing:border-box;
   }
   .sync-token-input:focus{outline:none;border-color:var(--muted);}
   .sync-connected-as{color:var(--fg);font-weight:600;font-size:13px;}
-  .sync-error{color:var(--fg);background:var(--track);border-radius:8px;padding:8px 10px;}
-  .sync-modal .modal-actions{justify-content:space-between;}
-  .sync-modal .btn-confirm[disabled], .sync-modal .btn-cancel[disabled]{opacity:.5;cursor:default;}
+  .sync-error{color:var(--fg);background:var(--track);border-radius:10px;padding:8px 10px;}
+  .settings-modal .modal-actions{justify-content:space-between;}
+  .settings-modal .btn-confirm[disabled], .settings-modal .btn-cancel[disabled]{opacity:.5;cursor:default;}
 
   /* ---------- detail page ---------- */
   .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;flex-wrap:wrap;}
@@ -201,7 +219,7 @@
     transition:color .15s ease, border-color .15s ease, transform .15s ease;
   }
   .icon-btn:hover{color:var(--fg);border-color:var(--fg);}
-  .icon-btn svg{width:16px;height:16px;}
+  .icon-btn svg{width:16px;height:16px;flex-shrink:0;}
   .reset-btn:hover{transform:rotate(-40deg);}
   .download-btn:hover{transform:translateY(-2px);}
 
@@ -230,7 +248,7 @@
   .modal button{
     font-family:inherit;font-size:13px;
     padding:9px 18px;
-    border-radius:999px;
+    border-radius:10px;
     cursor:pointer;
     transition:opacity .15s ease, border-color .15s ease;
   }
@@ -245,9 +263,9 @@
     border-radius:999px;background:var(--track);overflow:hidden;
   }
   .bar-segments .seg > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
-  /* бонусный кусочек полосы за ресерч-темы: та же шкала, но приглушённая заливка */
-  .bar-segments .seg.seg-bonus{background:transparent;border:1px dashed var(--border);}
-  .bar-segments .seg.seg-bonus > i{background:var(--accent);opacity:.45;}
+  /* бонусный кусочек полосы за ресерч-темы: лиловым, отдельно от основного цвета */
+  .bar-segments .seg.seg-bonus{background:var(--research-track);}
+  .bar-segments .seg.seg-bonus > i{background:var(--research);}
 
   .part{
     margin-bottom:22px;
@@ -310,20 +328,10 @@
     .icon-btn, .fab{width:44px;height:44px;min-width:44px;}
   }
 
-  /* ресерч-темы (необязательный "углублённый" уровень): пунктирный чекбокс + бейдж R */
-  .item.research input[type=checkbox]{border-style:dashed;}
-  .item.research input[type=checkbox]:checked{border-style:solid;}
-  .item .r-badge{
-    display:inline-block;
-    font-size:8.5px;font-weight:700;
-    color:var(--muted);
-    border:1px solid var(--border);
-    border-radius:3px;
-    padding:0 3px;
-    margin-right:6px;
-    line-height:1.4;
-    vertical-align:middle;
-  }
+  /* ресерч-темы (необязательный "углублённый" уровень): выделяем лиловым цветом, без отдельного бейджа */
+  .item.research input[type=checkbox]{border-color:var(--research);}
+  .item.research input[type=checkbox]:checked{background:var(--research);border-color:var(--research);}
+  .item.research .code{color:var(--research);opacity:.85;}
 
   .empty{color:var(--muted);padding:40px 0;text-align:center;}
 </style>
@@ -397,7 +405,10 @@
       syncLastSync: function(date){ return "Последний синк: " + date; },
       syncNeverSynced: "Ещё не синхронизировалось",
       syncErrorPrefix: "Ошибка синка: ",
-      syncClose: "Закрыть"
+      syncClose: "Закрыть",
+      settingsTitle: "Настройки",
+      langLabel: "Язык",
+      syncSectionLabel: "Синхронизация"
     },
     en: {
       partWord: "Part",
@@ -428,7 +439,10 @@
       syncLastSync: function(date){ return "Last synced: " + date; },
       syncNeverSynced: "Not synced yet",
       syncErrorPrefix: "Sync error: ",
-      syncClose: "Close"
+      syncClose: "Close",
+      settingsTitle: "Settings",
+      langLabel: "Language",
+      syncSectionLabel: "Sync"
     }
   };
   function t(){ return STRINGS[LANG]; }
@@ -664,20 +678,32 @@
     });
   }
 
+  var ICON_CLOSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
   var syncPanelRefresh = null;
 
-  function openSyncPanel(){
+  function openSettingsPanel(){
     var backdrop = document.createElement("div");
     backdrop.className = "modal-backdrop";
-    backdrop.innerHTML = '<div class="modal sync-modal" role="dialog" aria-modal="true"></div>';
+    backdrop.innerHTML = '<div class="modal settings-modal" role="dialog" aria-modal="true"></div>';
     document.body.appendChild(backdrop);
-    var modal = backdrop.querySelector(".sync-modal");
+    var modal = backdrop.querySelector(".settings-modal");
 
     function render(){
       var s = t();
-      var body;
+
+      var langSection =
+        '<div class="settings-section">' +
+          '<div class="settings-label">' + escapeHtml(s.langLabel) + '</div>' +
+          '<div class="lang-toggle">' +
+            '<button type="button" class="lang-opt' + (LANG === "ru" ? " active" : "") + '" data-lang="ru">RU</button>' +
+            '<button type="button" class="lang-opt' + (LANG === "en" ? " active" : "") + '" data-lang="en">EN</button>' +
+          '</div>' +
+        '</div>';
+
+      var syncBody;
       if(sync.connected){
-        body =
+        syncBody =
           '<p class="sync-connected-as">' + escapeHtml(s.syncConnectedAs(sync.login || "…")) + '</p>' +
           '<p class="sync-last">' + escapeHtml(sync.lastSyncAt ? s.syncLastSync(formatDate(sync.lastSyncAt)) : s.syncNeverSynced) + '</p>' +
           (sync.error ? '<p class="sync-error">' + escapeHtml(s.syncErrorPrefix + sync.error) + '</p>' : '') +
@@ -688,7 +714,7 @@
             '</button>' +
           '</div>';
       } else {
-        body =
+        syncBody =
           '<p class="sync-intro">' + escapeHtml(s.syncIntro) + '</p>' +
           '<p class="sync-howto">' + escapeHtml(s.syncHowTo) +
             '<a href="https://github.com/settings/tokens/new?scopes=gist&description=ML%20Topics%20sync" target="_blank" rel="noopener">' +
@@ -704,12 +730,17 @@
             '</button>' +
           '</div>';
       }
+
       modal.innerHTML =
-        '<div class="sync-head"><h3>' + escapeHtml(s.syncTitle) + '</h3>' +
-          '<button type="button" class="icon-btn sync-close-btn" aria-label="' + escapeHtml(s.syncClose) + '">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
-          '</button>' +
-        '</div>' + body;
+        '<div class="sync-head"><h3>' + escapeHtml(s.settingsTitle) + '</h3>' +
+          '<button type="button" class="icon-btn sync-close-btn" aria-label="' + escapeHtml(s.syncClose) + '">' + ICON_CLOSE + '</button>' +
+        '</div>' +
+        langSection +
+        '<div class="settings-divider"></div>' +
+        '<div class="settings-section">' +
+          '<div class="settings-label">' + escapeHtml(s.syncSectionLabel) + '</div>' +
+          syncBody +
+        '</div>';
     }
     render();
     syncPanelRefresh = render;
@@ -724,6 +755,18 @@
     backdrop.addEventListener("click", function(e){ if(e.target === backdrop) close(); });
 
     modal.addEventListener("click", function(e){
+      var langOpt = e.target.closest(".lang-opt");
+      if(langOpt){
+        var newLang = langOpt.getAttribute("data-lang");
+        if(newLang !== LANG){
+          LANG = newLang;
+          try { localStorage.setItem(LANG_KEY, LANG); } catch(err){}
+          refreshChrome();
+          var scrollY = window.scrollY;
+          loadAll().then(function(){ route(); window.scrollTo(0, scrollY); render(); });
+        }
+        return;
+      }
       if(e.target.closest(".sync-close-btn")){ close(); return; }
       if(e.target.closest(".sync-disconnect-btn")){ disconnectSync(); render(); return; }
       if(e.target.closest(".sync-now-btn")){ syncNow().catch(function(){}); return; }
@@ -959,20 +1002,20 @@
     var cb = document.createElement("input");
     cb.type = "checkbox";
     cb.checked = checked;
-    if(item.research) cb.title = t().researchHint;
 
     var label = document.createElement("span");
     label.className = "txt label";
-    label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' +
-      (item.research ? '<span class="r-badge" title="' + escapeHtml(t().researchHint) + '">R</span>' : '') +
-      inlineMd(item.text);
+    label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' + inlineMd(item.text);
 
     row.appendChild(cb);
     row.appendChild(label);
 
     function updateDoneTitle(){
+      var parts = [];
+      if(item.research) parts.push(t().researchHint);
       var at = checkedAt(catId, item.code);
-      row.title = at ? t().completedOn(formatDate(at)) : "";
+      if(at) parts.push(t().completedOn(formatDate(at)));
+      row.title = parts.join(" · ");
     }
     updateDoneTitle();
 
@@ -1130,53 +1173,33 @@
     topBtn.classList.toggle("visible", window.scrollY > 400);
   });
 
-  var langBtn = document.createElement("button");
-  langBtn.id = "langBtn";
-  langBtn.className = "fab lang-btn";
-  langBtn.type = "button";
-  document.body.appendChild(langBtn);
+  var ICON_GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
+
+  var settingsBtn = document.createElement("button");
+  settingsBtn.id = "settingsBtn";
+  settingsBtn.className = "fab";
+  settingsBtn.type = "button";
+  settingsBtn.innerHTML = ICON_GEAR;
+  settingsBtn.addEventListener("click", openSettingsPanel);
+  document.body.appendChild(settingsBtn);
 
   function refreshChrome(){
     backBtn.setAttribute("aria-label", t().back);
     backBtn.title = t().back;
     topBtn.setAttribute("aria-label", t().top);
     topBtn.title = t().top;
-    langBtn.textContent = LANG === "ru" ? "EN" : "RU";
-    langBtn.setAttribute("aria-label", LANG === "ru" ? "Switch to English" : "Переключить на русский");
+    settingsBtn.setAttribute("aria-label", t().settingsTitle);
+    settingsBtn.title = t().settingsTitle;
     document.documentElement.lang = LANG;
   }
   refreshChrome();
 
-  langBtn.addEventListener("click", function(){
-    LANG = LANG === "ru" ? "en" : "ru";
-    try { localStorage.setItem(LANG_KEY, LANG); } catch(e){}
-    refreshChrome();
-    var scrollY = window.scrollY;
-    loadAll().then(function(){
-      route();
-      window.scrollTo(0, scrollY);
-    });
-  });
-
   var footer = document.createElement("div");
   footer.className = "site-footer";
-  footer.innerHTML =
-    '<a href="https://github.com/qubeyond" target="_blank" rel="noopener">github.com/qubeyond</a>' +
-    '<span class="sep">·</span>' +
-    '<button type="button" class="sync-link" id="syncLink"></button>';
+  footer.innerHTML = '<a href="https://github.com/qubeyond" target="_blank" rel="noopener">github.com/qubeyond</a>';
   document.body.appendChild(footer);
 
-  var syncLinkBtn = footer.querySelector("#syncLink");
-  function refreshSyncLink(){
-    syncLinkBtn.classList.toggle("on", sync.connected);
-    syncLinkBtn.classList.toggle("err", !!sync.error);
-    syncLinkBtn.textContent = sync.syncing ? t().syncing
-      : sync.connected ? t().synced
-      : t().syncOff;
-  }
-  refreshSyncLink();
-  syncLinkBtn.addEventListener("click", openSyncPanel);
-  sync.onChange = function(){ refreshSyncLink(); if(syncPanelRefresh) syncPanelRefresh(); };
+  sync.onChange = function(){ if(syncPanelRefresh) syncPanelRefresh(); };
 
   // ---------------------------------------------------------------------
   // router
@@ -1184,6 +1207,7 @@
   function route(){
     var hash = location.hash.replace(/^#\/?/, "");
     backBtn.style.display = hash ? "flex" : "none";
+    settingsBtn.style.display = hash ? "none" : "flex";
     if(!hash){ renderHome(); return; }
     renderDetail(hash);
   }
