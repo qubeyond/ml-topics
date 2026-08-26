@@ -416,35 +416,14 @@
   .item.research.practice .code{color:var(--research);opacity:.85;}
 
   /* ---------- dependency graph ---------- */
-  .graph-canvas{position:relative;width:100%;height:100%;}
-  .graph-canvas svg.graph-edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-  .graph-canvas svg.graph-edges line{stroke:var(--border);stroke-width:1.5;}
-  .graph-nodes-layer{position:absolute;inset:0;}
-  .graph-node{
-    position:absolute;
-    display:flex;align-items:center;justify-content:center;
-    padding:0 8px;
-    border-radius:8px;
-    border:1.5px solid var(--faint);
-    background:var(--card-bg);
-    font-size:11px;font-weight:600;
-    color:var(--muted);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    cursor:pointer;
-    user-select:none;
-    touch-action:none;
-    box-shadow:var(--shadow-1);
-    transition:border-color .15s ease, color .15s ease, background .15s ease;
-  }
-  .graph-node.checked{background:var(--accent);border-color:var(--accent);color:var(--bg);}
-  .graph-node.research{border-color:var(--research);color:var(--research);}
-  .graph-node.research.checked{background:var(--research);border-color:var(--research);color:var(--bg);}
-  .graph-node.practice{border-color:var(--practice);color:var(--practice);}
-  .graph-node.practice.checked{background:var(--practice);border-color:var(--practice);color:var(--bg);}
-  .graph-node.research.practice{border-color:transparent;border-image:linear-gradient(135deg, var(--research), var(--practice)) 1;color:var(--research);}
-  .graph-node.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));border-color:transparent;color:var(--bg);}
-  /* мини-превью — точки без подписи, в духе Obsidian, а не мелкий обрезанный текст */
-  .graph-node.graph-dot{border-radius:50%;padding:0;border:none;box-shadow:none;background:var(--faint);}
+  .graph-canvas{position:relative;width:100%;height:100%;overflow:hidden;}
+  .graph-canvas svg.graph-edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .graph-canvas svg.graph-edges line{stroke:var(--border);stroke-width:1.5;transition:stroke .1s ease, stroke-width .1s ease;}
+  .graph-canvas svg.graph-edges line.active{stroke:var(--fg);stroke-width:2;}
+  .graph-nodes-layer{position:absolute;left:0;top:0;}
+
+  /* мини-превью — точки без подписи, в духе Obsidian */
+  .graph-node.graph-dot{position:absolute;border-radius:50%;border:none;background:var(--faint);}
   .graph-node.graph-dot.checked{background:var(--accent);}
   .graph-node.graph-dot.research{background:var(--research-track);}
   .graph-node.graph-dot.research.checked{background:var(--research);}
@@ -454,14 +433,42 @@
   .graph-node.graph-dot.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));}
   .graph-mini .graph-edges line{stroke-width:1;}
 
+  /* фулскрин — точка + подпись сверху над ней, не прямоугольник-с-текстом */
+  .graph-node-dot{
+    position:absolute;border-radius:50%;
+    background:var(--card-bg);border:2px solid var(--faint);
+    cursor:pointer;user-select:none;touch-action:none;
+    box-shadow:var(--shadow-1);
+    transition:background .15s ease, border-color .15s ease, transform .1s ease;
+  }
+  .graph-node-dot.checked{background:var(--accent);border-color:var(--accent);}
+  .graph-node-dot.research{border-color:var(--research);}
+  .graph-node-dot.research.checked{background:var(--research);border-color:var(--research);}
+  .graph-node-dot.practice{border-color:var(--practice);}
+  .graph-node-dot.practice.checked{background:var(--practice);border-color:var(--practice);}
+  .graph-node-dot.research.practice{border-color:transparent;border-image:linear-gradient(135deg, var(--research), var(--practice)) 1;}
+  .graph-node-dot.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));border-color:transparent;}
+  .graph-node-dot.dragging{transform:scale(1.4);}
+  .graph-node-label{
+    position:absolute;
+    transform:translate(-50%, -100%);
+    font-size:11px;font-weight:600;color:var(--muted);
+    white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;
+    cursor:pointer;user-select:none;touch-action:none;
+  }
+  .graph-node-label.checked{color:var(--fg);}
+  .graph-node-label.research{color:var(--research);}
+  .graph-node-label.practice{color:var(--practice);}
+  .graph-node-label.research.practice{color:var(--research);}
+
   /* мини-превью в углу страницы курса — только на широких экранах,
      на мобильных/узких вместо него просто кнопка в head-actions */
   @media (min-width:1280px){
     .graph-mini{
       position:fixed;
       top:28px;
-      right:max(16px, calc(50vw - 380px - 220px - 24px));
-      width:220px;height:190px;
+      right:max(16px, calc(50vw - 380px - 260px - 24px));
+      width:260px;height:220px;
       border:1px solid var(--border);
       border-radius:16px;
       background:var(--card-bg);
@@ -499,7 +506,7 @@
     border-radius:20px;
     box-shadow:var(--shadow-2);
     width:100%;height:100%;
-    max-width:1100px;
+    max-width:1400px;
     display:flex;flex-direction:column;
     overflow:hidden;
   }
@@ -509,9 +516,13 @@
     flex-shrink:0;gap:12px;
   }
   .graph-overlay-head h3{margin:0;font-size:15px;}
-  .graph-overlay-body{flex:1;position:relative;overflow:auto;-webkit-overflow-scrolling:touch;}
-  .graph-overlay .graph-node{font-size:12px;padding:0 10px;cursor:grab;}
-  .graph-overlay .graph-node:active{cursor:grabbing;}
+  /* фон "в точечку", как разлиновка на бумаге для графов — двигается вместе с камерой (JS) */
+  .graph-overlay-body{
+    flex:1;position:relative;overflow:hidden;cursor:grab;
+    background-color:var(--card-bg);
+    background-image:radial-gradient(circle, var(--border) 1.2px, transparent 1.2px);
+  }
+  .graph-overlay-body.panning{cursor:grabbing;}
   @media (max-width:640px){
     .graph-overlay-backdrop{padding:0;}
     .graph-overlay{border-radius:0;max-width:none;}
@@ -1344,9 +1355,10 @@
     var cat = CATALOG[catId];
     var p = progressFor(catId);
     if(!progressEls || !cat) return;
-    progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.totalPct + "%)";
-    if(progressEls.fracResearch) progressEls.fracResearch.textContent = p.totalResearch ? "+" + p.doneResearch + "/" + p.totalResearch + " R" : "";
-    if(progressEls.fracPractice) progressEls.fracPractice.textContent = p.totalPractice ? "+" + p.donePractice + "/" + p.totalPractice + " P" : "";
+    progressEls.frac.textContent = p.done + " / " + p.total;
+    if(progressEls.fracResearch) progressEls.fracResearch.textContent = p.totalResearch ? p.doneResearch + " / " + p.totalResearch : "";
+    if(progressEls.fracPractice) progressEls.fracPractice.textContent = p.totalPractice ? p.donePractice + " / " + p.totalPractice : "";
+    if(progressEls.fracPct) progressEls.fracPct.textContent = "(" + p.totalPct + "%)";
     progressEls.segments.forEach(function(seg){
       var sp = progressForItems(catId, seg.items);
       seg.fill.style.width = Math.min(sp.pct, 100) + "%";
@@ -1407,20 +1419,23 @@
     return level;
   }
 
-  function graphNodeEl(n, catId, interactive){
+  // мини-превью: точка без подписи (title — на hover)
+  function graphDotEl(n, catId){
     var el = document.createElement("div");
-    el.className = "graph-node" + (interactive ? "" : " graph-dot") +
+    el.className = "graph-node graph-dot" +
       (n.research ? " research" : "") + (n.practice ? " practice" : "") + (isChecked(catId, n.code) ? " checked" : "");
-    if(interactive) el.textContent = n.text;
-    else el.title = n.text;
+    el.title = n.text;
     el.dataset.code = n.code;
     return el;
   }
 
-  // рендерит физику + DOM узлов/рёбер графа внутри container.
-  // interactive=true — живая симуляция с перетаскиванием (фулскрин);
-  // false — один прогон физики, статичный "слепок", уместившийся в контейнер (мини-превью)
-  function mountGraph(container, catId, interactive){
+  function tagClass(n){
+    return (n.research ? " research" : "") + (n.practice ? " practice" : "");
+  }
+
+  // мини-превью (Obsidian-style точки, без взаимодействия с камерой):
+  // один прогон физики, статичный "слепок", уместившийся в контейнер целиком.
+  function mountMiniGraphSim(container, catId){
     var graph = CATALOG[catId].graph;
     var w = container.clientWidth || 200, h = container.clientHeight || 200;
     var levels = computeGraphLevels(graph.nodes, graph.edges);
@@ -1429,26 +1444,17 @@
     });
     var byCode = {};
     simNodes.forEach(function(n){ byCode[n.code] = n; });
-    // d3.forceLink() мутирует .source/.target из строк-кодов в ссылки на
-    // узлы прямо на первом тике — держим исходные коды отдельно для paint()
     var simEdges = graph.edges
       .filter(function(e){ return byCode[e.source] && byCode[e.target]; })
-      .map(function(e){ return { source: e.source, target: e.target, sourceCode: e.source, targetCode: e.target }; });
+      .map(function(e){ return { sourceCode: e.source, targetCode: e.target }; });
 
     var maxLevel = simNodes.reduce(function(m, n){ return Math.max(m, n.level); }, 0);
-    var narrow = interactive && w < 640;
-    // мини-превью — точки без подписи (как у Obsidian), фулскрин — подписанные блоки
-    var NODE_W = interactive ? (narrow ? 108 : 140) : 7, NODE_H = interactive ? 34 : 7;
-    // фулскрин: уровни не сжимаются под высоту контейнера — граф выше видимой
-    // области просто скроллится (см. .graph-overlay-body{overflow-y:auto}),
-    // мини-превью обязано влезть в свой маленький бокс целиком
-    var levelGap = interactive ? 96 : Math.max(16, (h - 20) / (maxLevel + 1));
-    var canvasH = interactive ? Math.max(h, 26 + (maxLevel + 1) * levelGap + 40) : h;
+    var DOT = 7;
+    var levelGap = Math.max(16, (h - 20) / (maxLevel + 1));
 
     container.innerHTML = "";
     var canvas = document.createElement("div");
     canvas.className = "graph-canvas";
-    canvas.style.height = canvasH + "px";
     container.appendChild(canvas);
 
     var svgNS = "http://www.w3.org/2000/svg";
@@ -1469,22 +1475,18 @@
     simNodes.forEach(function(n){
       n.x = w / 2 + (Math.random() - 0.5) * Math.min(w * 0.7, 420);
       n.y = 26 + n.level * levelGap + (Math.random() - 0.5) * 8;
-      var el = graphNodeEl(n, catId, interactive);
-      el.style.width = NODE_W + "px";
-      el.style.height = NODE_H + "px";
+      var el = graphDotEl(n, catId);
+      el.style.width = DOT + "px";
+      el.style.height = DOT + "px";
       nodesLayer.appendChild(el);
       nodeEls[n.code] = el;
     });
 
     function paint(){
       simNodes.forEach(function(n){
-        // не даём узлам уплыть в отрицательные координаты — overflow:auto
-        // не скроллит "назад" за 0,0, узел там стал бы физически недостижим
-        if(n.x < NODE_W / 2) n.x = NODE_W / 2;
-        if(n.y < NODE_H / 2) n.y = NODE_H / 2;
         var el = nodeEls[n.code];
-        el.style.left = (n.x - NODE_W / 2) + "px";
-        el.style.top = (n.y - NODE_H / 2) + "px";
+        el.style.left = (n.x - DOT / 2) + "px";
+        el.style.top = (n.y - DOT / 2) + "px";
       });
       simEdges.forEach(function(e, i){
         var s = byCode[e.sourceCode], tn = byCode[e.targetCode];
@@ -1495,60 +1497,244 @@
     }
 
     var sim = d3.forceSimulation(simNodes)
-      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(interactive ? 76 : 14).strength(0.6))
-      .force("charge", d3.forceManyBody().strength(interactive ? -220 : -14))
-      .force("collide", d3.forceCollide(interactive ? NODE_W * 0.62 : 5))
+      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(14).strength(0.6))
+      .force("charge", d3.forceManyBody().strength(-14))
+      .force("collide", d3.forceCollide(5))
       .force("x", d3.forceX(w / 2).strength(0.03))
-      .force("y", d3.forceY(function(n){ return 26 + n.level * levelGap; }).strength(0.4));
+      .force("y", d3.forceY(function(n){ return 26 + n.level * levelGap; }).strength(0.4))
+      .stop();
+    for(var i = 0; i < 300; i++) sim.tick();
 
-    if(interactive){
-      sim.on("tick", paint);
-    } else {
-      sim.stop();
-      for(var i = 0; i < 300; i++) sim.tick();
-      var xs = simNodes.map(function(n){ return n.x; });
-      var ys = simNodes.map(function(n){ return n.y; });
-      var minX = Math.min.apply(null, xs) - NODE_W / 2, maxX = Math.max.apply(null, xs) + NODE_W / 2;
-      var minY = Math.min.apply(null, ys) - NODE_H / 2, maxY = Math.max.apply(null, ys) + NODE_H / 2;
-      var gw = Math.max(maxX - minX, 1), gh = Math.max(maxY - minY, 1);
-      var k = Math.min(w / gw, h / gh, 1) * 0.92;
-      var ox = w / 2 - (minX + maxX) / 2 * k, oy = h / 2 - (minY + maxY) / 2 * k;
-      simNodes.forEach(function(n){ n.x = n.x * k + ox; n.y = n.y * k + oy; });
-      paint();
-    }
+    var xs = simNodes.map(function(n){ return n.x; });
+    var ys = simNodes.map(function(n){ return n.y; });
+    var minX = Math.min.apply(null, xs) - DOT / 2, maxX = Math.max.apply(null, xs) + DOT / 2;
+    var minY = Math.min.apply(null, ys) - DOT / 2, maxY = Math.max.apply(null, ys) + DOT / 2;
+    var gw = Math.max(maxX - minX, 1), gh = Math.max(maxY - minY, 1);
+    var k = Math.min(w / gw, h / gh, 1) * 0.92;
+    var ox = w / 2 - (minX + maxX) / 2 * k, oy = h / 2 - (minY + maxY) / 2 * k;
+    simNodes.forEach(function(n){ n.x = n.x * k + ox; n.y = n.y * k + oy; });
+    paint();
 
     Object.keys(nodeEls).forEach(function(code){
-      var el = nodeEls[code];
-      var dragMoved = false;
-      el.addEventListener("click", function(e){
-        if(dragMoved){ dragMoved = false; return; }
+      nodeEls[code].addEventListener("click", function(e){
         e.stopPropagation();
         var next = !isChecked(catId, code);
         setChecked(catId, code, next);
-        el.classList.toggle("checked", next);
+        nodeEls[code].classList.toggle("checked", next);
       });
-      if(interactive){
-        d3.select(el).datum(byCode[code]).call(
-          d3.drag()
-            .on("start", function(event){
-              dragMoved = false;
-              if(!event.active) sim.alphaTarget(0.3).restart();
-              event.subject.fx = event.subject.x;
-              event.subject.fy = event.subject.y;
-            })
-            .on("drag", function(event){
-              dragMoved = true;
-              event.subject.fx = event.x;
-              event.subject.fy = event.y;
-            })
-            .on("end", function(event){
-              if(!event.active) sim.alphaTarget(0);
-              event.subject.fx = null;
-              event.subject.fy = null;
-            })
-        );
-      }
     });
+
+    return { stop: function(){ sim.stop(); } };
+  }
+
+  // фулскрин-граф: живая физика, точки с подписью сверху, камера (панорама
+  // зажатой мышкой + зум колёсиком) вместо скролла контейнера.
+  function mountInteractiveGraph(container, catId){
+    var graph = CATALOG[catId].graph;
+    var w = container.clientWidth || 800, h = container.clientHeight || 600;
+    var levels = computeGraphLevels(graph.nodes, graph.edges);
+    var simNodes = graph.nodes.map(function(n){
+      return { code: n.code, text: n.text, research: !!n.research, practice: !!n.practice, level: levels[n.code] || 0 };
+    });
+    var byCode = {};
+    simNodes.forEach(function(n){ byCode[n.code] = n; });
+    // d3.forceLink() мутирует .source/.target из строк-кодов в ссылки на
+    // узлы прямо на первом тике — держим исходные коды отдельно для paint()
+    var simEdges = graph.edges
+      .filter(function(e){ return byCode[e.source] && byCode[e.target]; })
+      .map(function(e){ return { source: e.source, target: e.target, sourceCode: e.source, targetCode: e.target }; });
+
+    var maxLevel = simNodes.reduce(function(m, n){ return Math.max(m, n.level); }, 0);
+    var DOT = 12;
+    var levelGap = 90;
+
+    container.innerHTML = "";
+    var canvas = document.createElement("div");
+    canvas.className = "graph-canvas";
+    container.appendChild(canvas);
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("class", "graph-edges");
+    canvas.appendChild(svg);
+    var g = document.createElementNS(svgNS, "g");
+    svg.appendChild(g);
+    var edgesByCode = {};
+    var lineEls = simEdges.map(function(e){
+      var line = document.createElementNS(svgNS, "line");
+      g.appendChild(line);
+      (edgesByCode[e.sourceCode] = edgesByCode[e.sourceCode] || []).push(line);
+      (edgesByCode[e.targetCode] = edgesByCode[e.targetCode] || []).push(line);
+      return line;
+    });
+
+    var nodesLayer = document.createElement("div");
+    nodesLayer.className = "graph-nodes-layer";
+    canvas.appendChild(nodesLayer);
+
+    var dotEls = {}, labelEls = {};
+    simNodes.forEach(function(n){
+      n.x = (Math.random() - 0.5) * Math.min(w, 600);
+      n.y = n.level * levelGap + (Math.random() - 0.5) * 8;
+      var cls = tagClass(n) + (isChecked(catId, n.code) ? " checked" : "");
+      var dot = document.createElement("div");
+      dot.className = "graph-node-dot" + cls;
+      dot.style.width = DOT + "px";
+      dot.style.height = DOT + "px";
+      dot.dataset.code = n.code;
+      nodesLayer.appendChild(dot);
+      dotEls[n.code] = dot;
+
+      var label = document.createElement("div");
+      label.className = "graph-node-label" + cls;
+      label.textContent = n.text;
+      label.dataset.code = n.code;
+      nodesLayer.appendChild(label);
+      labelEls[n.code] = label;
+    });
+
+    function paint(){
+      simNodes.forEach(function(n){
+        var dot = dotEls[n.code], label = labelEls[n.code];
+        dot.style.left = (n.x - DOT / 2) + "px";
+        dot.style.top = (n.y - DOT / 2) + "px";
+        label.style.left = n.x + "px";
+        label.style.top = (n.y - DOT / 2 - 6) + "px";
+      });
+      simEdges.forEach(function(e, i){
+        var s = byCode[e.sourceCode], tn = byCode[e.targetCode];
+        var line = lineEls[i];
+        line.setAttribute("x1", s.x); line.setAttribute("y1", s.y);
+        line.setAttribute("x2", tn.x); line.setAttribute("y2", tn.y);
+      });
+    }
+
+    var sim = d3.forceSimulation(simNodes)
+      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(70).strength(0.6))
+      .force("charge", d3.forceManyBody().strength(-260))
+      .force("collide", d3.forceCollide(34))
+      .force("x", d3.forceX(0).strength(0.03))
+      .force("y", d3.forceY(function(n){ return n.level * levelGap; }).strength(0.4))
+      .stop();
+    // разогрев физики, чтобы сразу было что центрировать в камере, без прыжка на первом кадре
+    for(var wi = 0; wi < 80; wi++) sim.tick();
+
+    // ---------------- камера: панорама зажатой мышкой + зум колёсиком ----------------
+    var camera = { x: 0, y: 0, k: 1 };
+    var kMin = 0.2, kMax = 2.5;
+
+    function fitToView(){
+      var xs = simNodes.map(function(n){ return n.x; });
+      var ys = simNodes.map(function(n){ return n.y; });
+      var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+      var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+      var gw = Math.max(maxX - minX, 80) + 120, gh = Math.max(maxY - minY, 80) + 120;
+      var kFit = Math.min(w / gw, h / gh);
+      kMin = Math.min(kFit, 1);
+      kMax = Math.max(kFit * 4, 1.6);
+      camera.k = kFit;
+      camera.x = w / 2 - (minX + maxX) / 2 * kFit;
+      camera.y = h / 2 - (minY + maxY) / 2 * kFit;
+    }
+    fitToView();
+
+    function applyCamera(){
+      var t = "translate(" + camera.x + "px," + camera.y + "px) scale(" + camera.k + ")";
+      nodesLayer.style.transform = t;
+      nodesLayer.style.transformOrigin = "0 0";
+      g.setAttribute("transform", "translate(" + camera.x + "," + camera.y + ") scale(" + camera.k + ")");
+      var dotSize = 22 * camera.k;
+      container.style.backgroundSize = dotSize + "px " + dotSize + "px";
+      container.style.backgroundPosition = camera.x + "px " + camera.y + "px";
+    }
+    applyCamera();
+    paint();
+    sim.on("tick", paint);
+    sim.alpha(0.4).restart();
+
+    // панорама фона (drag по пустому месту, не по узлу)
+    var panState = null;
+    container.addEventListener("pointerdown", function(e){
+      if(e.target.closest(".graph-node-dot, .graph-node-label")) return;
+      panState = { x: e.clientX, y: e.clientY, camX: camera.x, camY: camera.y };
+      container.classList.add("panning");
+      try { container.setPointerCapture(e.pointerId); } catch(err){}
+    });
+    container.addEventListener("pointermove", function(e){
+      if(!panState) return;
+      camera.x = panState.camX + (e.clientX - panState.x);
+      camera.y = panState.camY + (e.clientY - panState.y);
+      applyCamera();
+    });
+    function endPan(){ panState = null; container.classList.remove("panning"); }
+    container.addEventListener("pointerup", endPan);
+    container.addEventListener("pointercancel", endPan);
+
+    // зум колёсиком к курсору, зажат в [kMin, kMax] (kMin = помещаются все темы)
+    container.addEventListener("wheel", function(e){
+      e.preventDefault();
+      var rect = container.getBoundingClientRect();
+      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      var worldX = (mx - camera.x) / camera.k, worldY = (my - camera.y) / camera.k;
+      var factor = Math.exp(-e.deltaY * 0.0012);
+      var newK = Math.min(kMax, Math.max(kMin, camera.k * factor));
+      camera.k = newK;
+      camera.x = mx - worldX * newK;
+      camera.y = my - worldY * newK;
+      applyCamera();
+    }, { passive: false });
+
+    // клик/драг узла — своя логика на точке и на подписи одного узла разом
+    function bindNode(code){
+      var dot = dotEls[code], label = labelEls[code];
+      var dragging = false, moved = false, start = null;
+      function highlight(on){
+        dot.classList.toggle("dragging", on);
+        (edgesByCode[code] || []).forEach(function(line){ line.classList.toggle("active", on); });
+      }
+      function onDown(e){
+        e.stopPropagation();
+        dragging = true; moved = false;
+        start = { x: e.clientX, y: e.clientY };
+        var n = byCode[code];
+        n.fx = n.x; n.fy = n.y;
+        sim.alphaTarget(0.3).restart();
+        highlight(true);
+        try { e.target.setPointerCapture(e.pointerId); } catch(err){}
+      }
+      function onMove(e){
+        if(!dragging) return;
+        moved = true;
+        var n = byCode[code];
+        n.fx += (e.clientX - start.x) / camera.k;
+        n.fy += (e.clientY - start.y) / camera.k;
+        start = { x: e.clientX, y: e.clientY };
+      }
+      function onUp(){
+        if(!dragging) return;
+        dragging = false;
+        sim.alphaTarget(0);
+        var n = byCode[code];
+        n.fx = null; n.fy = null;
+        highlight(false);
+      }
+      function onClick(e){
+        if(moved){ moved = false; return; }
+        e.stopPropagation();
+        var next = !isChecked(catId, code);
+        setChecked(catId, code, next);
+        dot.classList.toggle("checked", next);
+        label.classList.toggle("checked", next);
+      }
+      [dot, label].forEach(function(el){
+        el.addEventListener("pointerdown", onDown);
+        el.addEventListener("pointermove", onMove);
+        el.addEventListener("pointerup", onUp);
+        el.addEventListener("pointercancel", onUp);
+        el.addEventListener("click", onClick);
+      });
+    }
+    Object.keys(dotEls).forEach(bindNode);
 
     return { stop: function(){ sim.stop(); } };
   }
@@ -1562,6 +1748,9 @@
   function mountMiniGraph(catId){
     var miniWrap = document.createElement("div");
     miniWrap.className = "graph-mini";
+    // верхушка мини-графа вровень с верхушкой первого блока темы на странице
+    var firstPart = document.querySelector(".part");
+    if(firstPart) miniWrap.style.top = firstPart.getBoundingClientRect().top + "px";
     miniWrap.innerHTML =
       '<div class="graph-mini-label">' + ICON_GRAPH + escapeHtml(t().graphMiniLabel) + '</div>' +
       '<button type="button" class="graph-mini-expand" aria-label="' + escapeHtml(t().graphBtn) + '" title="' + escapeHtml(t().graphBtn) + '">' + ICON_EXPAND + '</button>';
@@ -1579,7 +1768,7 @@
 
     ensureD3().then(function(){
       if(miniGraphEl !== miniWrap) return; // ушли со страницы, пока грузился d3
-      miniGraphSim = mountGraph(host, catId, false);
+      miniGraphSim = mountMiniGraphSim(host, catId);
     }).catch(function(){});
   }
 
@@ -1614,7 +1803,7 @@
     var body = backdrop.querySelector(".graph-overlay-body");
     ensureD3().then(function(){
       if(!document.body.contains(backdrop)) return;
-      sim = mountGraph(body, catId, true);
+      sim = mountInteractiveGraph(body, catId);
     }).catch(function(){});
   }
 
@@ -1635,9 +1824,10 @@
     var p = progressFor(catId);
     head.innerHTML =
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
-      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.totalPct + '%)</span>' +
-        (p.totalResearch ? ' <span class="count-research" id="fracResearch">+' + p.doneResearch + '/' + p.totalResearch + ' R</span>' : '') +
-        (p.totalPractice ? ' <span class="count-practice" id="fracPractice">+' + p.donePractice + '/' + p.totalPractice + ' P</span>' : '') +
+      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + '</span>' +
+        (p.totalResearch ? ' <span class="count-research" id="fracResearch">' + p.doneResearch + ' / ' + p.totalResearch + '</span>' : '') +
+        (p.totalPractice ? ' <span class="count-practice" id="fracPractice">' + p.donePractice + ' / ' + p.totalPractice + '</span>' : '') +
+        ' <span id="fracPct">(' + p.totalPct + '%)</span>' +
       '</div></div>' +
       '<div class="head-actions">' +
         (hasGraph ?
@@ -1654,9 +1844,6 @@
 
     if(hasGraph){
       head.querySelector(".graph-btn").addEventListener("click", function(){ openGraphOverlay(catId); });
-      if(window.matchMedia("(min-width:1280px)").matches){
-        mountMiniGraph(catId);
-      }
     }
 
     var bar = document.createElement("div");
@@ -1711,7 +1898,7 @@
     });
     app.appendChild(bar);
 
-    progressEls = { frac: head.querySelector("#frac"), fracResearch: head.querySelector("#fracResearch"), fracPractice: head.querySelector("#fracPractice"), segments: segments };
+    progressEls = { frac: head.querySelector("#frac"), fracResearch: head.querySelector("#fracResearch"), fracPractice: head.querySelector("#fracPractice"), fracPct: head.querySelector("#fracPct"), segments: segments };
 
     head.querySelector(".download-btn").addEventListener("click", function(){
       downloadText(cat.file || (catId + ".md"), cat.raw || "");
@@ -1749,6 +1936,10 @@
       });
       app.appendChild(partEl);
     });
+
+    if(hasGraph && window.matchMedia("(min-width:1280px)").matches){
+      mountMiniGraph(catId);
+    }
   }
 
   // ---------------------------------------------------------------------
