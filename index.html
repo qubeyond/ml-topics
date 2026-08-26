@@ -69,6 +69,11 @@
     padding-right:max(24px, env(safe-area-inset-right));
     padding-bottom:max(96px, calc(96px + env(safe-area-inset-bottom)));
   }
+  /* фикс-футер/настройки сверху занимают свою полосу — отодвигаем заголовок,
+     чтобы не липло */
+  @media (max-width:640px){
+    .wrap{padding-top:max(76px, calc(76px + env(safe-area-inset-top)));}
+  }
 
   /* ---------- header ---------- */
   header.top{text-align:center;margin-bottom:36px;}
@@ -149,8 +154,12 @@
     color:var(--fg);
     transition:transform .18s ease, box-shadow .18s ease, opacity .18s ease;
     z-index:50;
+    /* форсируем отдельный композитный слой — иначе на iOS Safari фикс-элементы
+       могут "плавать"/дёргаться во время инерционного скролла */
+    transform:translateZ(0);
+    -webkit-backface-visibility:hidden;
   }
-  .fab:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);}
+  .fab:hover{transform:translateY(-2px) translateZ(0);box-shadow:var(--shadow-2);}
   .fab svg{width:18px;height:18px;flex-shrink:0;}
   /* держим кнопки у краёв контент-блока (760px, центрирован), но не даём им уехать за экран */
   /* 380px = половина ширины .wrap (760px), 42px = ширина кнопки, 16px = зазор до контента */
@@ -176,6 +185,8 @@
     color:var(--faint);
     z-index:40;
     display:flex;align-items:center;gap:7px;
+    transform:translateZ(0);
+    -webkit-backface-visibility:hidden;
   }
   .site-footer a{transition:color .15s ease;}
   .site-footer a:hover{color:var(--fg);}
@@ -184,7 +195,7 @@
     .site-footer{
       left:50%;
       right:auto;
-      transform:translateX(-50%);
+      transform:translateX(-50%) translateZ(0);
       top:max(28px, calc(28px + env(safe-area-inset-top)));
       bottom:auto;
     }
@@ -192,10 +203,10 @@
   }
 
   /* ---------- settings modal (язык + синк) ---------- */
-  .settings-modal{max-width:460px;text-align:left;padding:26px;}
+  .modal.settings-modal{max-width:460px;text-align:left;padding:26px;}
   .sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
   .sync-head h3{font-size:17px;margin:0;letter-spacing:-.01em;}
-  .sync-head .icon-btn{width:32px;height:32px;min-width:32px;flex:none;border-radius:50%;}
+  .sync-head .icon-btn{width:32px;height:32px;min-width:32px;min-height:32px;flex:none;flex-shrink:0;border-radius:50%;padding:0;}
   .sync-head .icon-btn svg{width:15px;height:15px;display:block;flex-shrink:0;}
   .settings-section{margin-bottom:20px;}
   .settings-section:last-child{margin-bottom:0;}
@@ -210,7 +221,7 @@
   }
   .lang-opt.active{background:var(--accent);border-color:var(--accent);color:var(--bg);}
   .lang-opt:not(.active):hover{border-color:var(--fg);color:var(--fg);}
-  .settings-modal p{margin:0 0 12px;font-size:12.5px;line-height:1.55;color:var(--muted);text-align:left;}
+  .modal.settings-modal p{margin:0 0 12px;font-size:12.5px;line-height:1.55;color:var(--muted);text-align:left;}
   .settings-modal a{text-decoration:underline;text-decoration-color:var(--muted);color:var(--fg);}
   .sync-token-label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
   .sync-token-input{
@@ -267,12 +278,19 @@
   }
   .modal p{margin:0 0 20px;font-size:14px;line-height:1.5;color:var(--fg);}
   .modal .modal-actions{display:flex;gap:10px;justify-content:center;}
-  .modal button{
+  .modal .modal-actions button{
     font-family:inherit;font-size:13px;
-    padding:9px 18px;
+    padding:9px 14px;
     border-radius:10px;
     cursor:pointer;
     transition:opacity .15s ease, border-color .15s ease;
+    /* ширина кнопки всегда = доля фиксированной ширины модалки, а не длины
+       текста — иначе при переключении RU/EN кнопки "прыгают" по размеру */
+    flex:1;
+    min-width:0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
   .modal .btn-cancel{background:none;border:1px solid var(--border);color:var(--fg);}
   .modal .btn-cancel:hover{border-color:var(--fg);}
