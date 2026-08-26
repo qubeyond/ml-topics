@@ -31,7 +31,8 @@
 - [ ] The bottleneck problem
 - [ ] Bahdanau, Luong
 
-- [ ] Https://stepik.org/course/272087/
+- [ ]{r p} [Stepik: NLP course](https://stepik.org/course/272087/)
+- [ ]{p} [Stepik: NLP course](https://stepik.org/course/272087/)
 
 
 ## Tokenization and Input Representation
