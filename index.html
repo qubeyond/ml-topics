@@ -30,6 +30,8 @@
     --track:#eeeeee;
     --research:#7c6fd6;
     --research-track:#efedfb;
+    --practice:#c17d2e;
+    --practice-track:#faf0e2;
   }
   @media (prefers-color-scheme: dark){
     :root{
@@ -45,6 +47,8 @@
       --track:#232323;
       --research:#a99ee8;
       --research-track:#221f34;
+      --practice:#e0ac66;
+      --practice-track:#332a1a;
     }
   }
   *{box-sizing:border-box;}
@@ -133,14 +137,17 @@
   }
   .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin-bottom:7px;}
   .card .meta .pct{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg);}
-  .card .counts{display:flex;align-items:center;gap:7px;}
+  .card .counts{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
   .count-research{color:var(--research);font-variant-numeric:tabular-nums;}
+  .count-practice{color:var(--practice);font-variant-numeric:tabular-nums;}
   .bar{height:4px;border-radius:999px;background:var(--track);overflow:hidden;}
   .bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
   .card .bar-group{display:flex;gap:3px;}
   .card .bar-group .bar{min-width:3px;}
   .card .bar-group .bar-bonus{background:var(--research-track);}
   .card .bar-group .bar-bonus > i{background:var(--research);}
+  .card .bar-group .bar-practice{background:var(--practice-track);}
+  .card .bar-group .bar-practice > i{background:var(--practice);}
 
   /* ---------- домены на главной ---------- */
   .domain-heading{
@@ -316,9 +323,11 @@
     border-radius:999px;background:var(--track);overflow:hidden;
   }
   .bar-segments .seg > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
-  /* бонусный кусочек полосы за ресерч-темы: лиловым, отдельно от основного цвета */
+  /* бонусные кусочки полосы за research/practice-темы — отдельным цветом от основного */
   .bar-segments .seg.seg-bonus{background:var(--research-track);}
   .bar-segments .seg.seg-bonus > i{background:var(--research);}
+  .bar-segments .seg.seg-practice{background:var(--practice-track);}
+  .bar-segments .seg.seg-practice > i{background:var(--practice);}
 
   .part{
     margin-bottom:22px;
@@ -391,6 +400,20 @@
   .item.research input[type=checkbox]{border-color:var(--research);}
   .item.research input[type=checkbox]:checked{background:var(--research);border-color:var(--research);}
   .item.research .code{color:var(--research);opacity:.85;}
+  .item.practice input[type=checkbox]{border-color:var(--practice);}
+  .item.practice input[type=checkbox]:checked{background:var(--practice);border-color:var(--practice);}
+  .item.practice .code{color:var(--practice);opacity:.85;}
+  /* пункт помечен и {r}, и {p} сразу — чекбокс двухцветный (диагональный градиент),
+     код остаётся лиловым (research как основной цвет для текста) */
+  .item.research.practice input[type=checkbox]{
+    border-color:transparent;
+    border-image:linear-gradient(135deg, var(--research), var(--practice)) 1;
+  }
+  .item.research.practice input[type=checkbox]:checked{
+    background:linear-gradient(135deg, var(--research), var(--practice));
+    border-color:transparent;
+  }
+  .item.research.practice .code{color:var(--research);opacity:.85;}
 
   /* ---------- dependency graph ---------- */
   .graph-canvas{position:relative;width:100%;height:100%;}
@@ -416,11 +439,19 @@
   .graph-node.checked{background:var(--accent);border-color:var(--accent);color:var(--bg);}
   .graph-node.research{border-color:var(--research);color:var(--research);}
   .graph-node.research.checked{background:var(--research);border-color:var(--research);color:var(--bg);}
+  .graph-node.practice{border-color:var(--practice);color:var(--practice);}
+  .graph-node.practice.checked{background:var(--practice);border-color:var(--practice);color:var(--bg);}
+  .graph-node.research.practice{border-color:transparent;border-image:linear-gradient(135deg, var(--research), var(--practice)) 1;color:var(--research);}
+  .graph-node.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));border-color:transparent;color:var(--bg);}
   /* мини-превью — точки без подписи, в духе Obsidian, а не мелкий обрезанный текст */
   .graph-node.graph-dot{border-radius:50%;padding:0;border:none;box-shadow:none;background:var(--faint);}
   .graph-node.graph-dot.checked{background:var(--accent);}
   .graph-node.graph-dot.research{background:var(--research-track);}
   .graph-node.graph-dot.research.checked{background:var(--research);}
+  .graph-node.graph-dot.practice{background:var(--practice-track);}
+  .graph-node.graph-dot.practice.checked{background:var(--practice);}
+  .graph-node.graph-dot.research.practice{background:linear-gradient(135deg, var(--research-track), var(--practice-track));}
+  .graph-node.graph-dot.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));}
   .graph-mini .graph-edges line{stroke-width:1;}
 
   /* мини-превью в углу страницы курса — только на широких экранах,
@@ -542,6 +573,7 @@
       resetConfirm: function(title){ return 'Сбросить прогресс по разделу «' + title + '»?'; },
       notFound: "Категория не найдена.",
       researchHint: "Необязательная тема углублённого уровня — не входит в основной %, даёт бонус сверху",
+      practiceHint: "Практическое задание — не входит в основной %, даёт бонус сверху",
       completedOn: function(date){ return "Пройдено: " + date; },
       syncing: "Синк…",
       synced: function(login){ return "Синк: " + login; },
@@ -581,6 +613,7 @@
       resetConfirm: function(title){ return "Reset progress for “" + title + "”?"; },
       notFound: "Category not found.",
       researchHint: "Optional deep-dive topic — outside the main %, counts as a bonus on top",
+      practiceHint: "Hands-on exercise — outside the main %, counts as a bonus on top",
       completedOn: function(date){ return "Completed: " + date; },
       syncing: "Syncing…",
       synced: function(login){ return "Sync: " + login; },
@@ -1025,7 +1058,7 @@
           curPart.childN++;
           code = curPart.code + "." + curPart.childN;
         }
-        var item = { code: code, text: text, defaultChecked: defaultChecked, research: tags.research, gid: tags.id, after: tags.after };
+        var item = { code: code, text: text, defaultChecked: defaultChecked, research: tags.research, practice: tags.practice, gid: tags.id, after: tags.after };
         items.push(item);
         if(curSection){ curSection.items.push(item); }
         else { curPart.entries.push({ type:"item", item: item }); }
@@ -1040,13 +1073,14 @@
   // {after:xxx,yyy} — связи в графе прописываются явно руками в .md,
   // не выводятся автоматически из структуры Part/Section/Item.
   function parseTags(raw){
-    var out = { research: false, id: null, after: [] };
+    var out = { research: false, practice: false, id: null, after: [] };
     if(!raw) return out;
     var inner = raw.slice(1, -1);
     inner.split(/\s+/).forEach(function(tok){
       if(!tok) return;
       var m;
       if(tok === "r"){ out.research = true; return; }
+      if(tok === "p"){ out.practice = true; return; }
       if((m = /^id:(.+)$/.exec(tok))){ out.id = m[1]; return; }
       if((m = /^after:(.+)$/.exec(tok))){ out.after = m[1].split(",").filter(Boolean); return; }
     });
@@ -1111,35 +1145,43 @@
     });
   }
 
-  // Темы с тегом {r} — необязательный "ресерч"-уровень: не входят в
-  // знаменатель процента, но если пройдены — дают бонус сверху (общий %
-  // курса может уйти выше 100).
+  // Темы с тегом {r} (research) и {p} (practice) — необязательные бонусные
+  // уровни: не входят в знаменатель основного процента, но если пройдены —
+  // дают бонус сверху (общий % курса может уйти выше 100). Независимы друг
+  // от друга: пункт может нести оба тега сразу и считаться в обоих бонусах.
   function splitItems(items){
-    var normal = [], research = [];
-    items.forEach(function(it){ (it.research ? research : normal).push(it); });
-    return { normal: normal, research: research };
+    var normal = [], research = [], practice = [];
+    items.forEach(function(it){
+      if(!it.research && !it.practice) normal.push(it);
+      if(it.research) research.push(it);
+      if(it.practice) practice.push(it);
+    });
+    return { normal: normal, research: research, practice: practice };
   }
 
   function computeProgress(catId, items){
     var s = splitItems(items);
-    var doneNormal = 0, doneResearch = 0;
+    var doneNormal = 0, doneResearch = 0, donePractice = 0;
     s.normal.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) doneNormal++; });
     s.research.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) doneResearch++; });
+    s.practice.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) donePractice++; });
     var total = s.normal.length;
     // pct — чистый % обычных тем (0-100, ведёт ширину основного бара).
-    // totalPct — с бонусом за ресерч сверху, может уйти выше 100 (для текста).
+    // totalPct — с бонусом за research+practice сверху, может уйти выше 100 (для текста).
     var pct = total ? Math.round(doneNormal / total * 100) : 0;
-    var totalPct = total ? Math.round((doneNormal + doneResearch) / total * 100) : 0;
+    var totalPct = total ? Math.round((doneNormal + doneResearch + donePractice) / total * 100) : 0;
     return {
       done: doneNormal, total: total, pct: pct, totalPct: totalPct,
       doneResearch: doneResearch, totalResearch: s.research.length,
-      researchPct: s.research.length ? Math.round(doneResearch / s.research.length * 100) : 0
+      researchPct: s.research.length ? Math.round(doneResearch / s.research.length * 100) : 0,
+      donePractice: donePractice, totalPractice: s.practice.length,
+      practicePct: s.practice.length ? Math.round(donePractice / s.practice.length * 100) : 0
     };
   }
 
   function progressFor(catId){
     var cat = CATALOG[catId];
-    if(!cat) return { done:0, total:0, pct:0, doneResearch:0, totalResearch:0, researchPct:0 };
+    if(!cat) return { done:0, total:0, pct:0, totalPct:0, doneResearch:0, totalResearch:0, researchPct:0, donePractice:0, totalPractice:0, practicePct:0 };
     return computeProgress(catId, cat.items);
   }
 
@@ -1174,13 +1216,17 @@
     if(p.totalResearch){
       countsHtml += '<span class="count-research">' + p.doneResearch + '/' + p.totalResearch + '</span>';
     }
+    if(p.totalPractice){
+      countsHtml += '<span class="count-practice">' + p.donePractice + '/' + p.totalPractice + '</span>';
+    }
 
     var barHtml;
-    if(p.totalResearch){
+    if(p.totalResearch || p.totalPractice){
       barHtml =
         '<div class="bar-group">' +
           '<div class="bar" style="flex:' + p.total + '"><i style="width:' + Math.min(p.pct, 100) + '%"></i></div>' +
-          '<div class="bar bar-bonus" style="flex:' + p.totalResearch + '"><i style="width:' + p.researchPct + '%"></i></div>' +
+          (p.totalResearch ? '<div class="bar bar-bonus" style="flex:' + p.totalResearch + '"><i style="width:' + p.researchPct + '%"></i></div>' : '') +
+          (p.totalPractice ? '<div class="bar bar-practice" style="flex:' + p.totalPractice + '"><i style="width:' + p.practicePct + '%"></i></div>' : '') +
         '</div>';
     } else {
       barHtml = '<div class="bar"><i style="width:' + Math.min(p.pct, 100) + '%"></i></div>';
@@ -1246,7 +1292,7 @@
 
   function renderItem(catId, item){
     var row = document.createElement("label");
-    row.className = "item" + (item.research ? " research" : "");
+    row.className = "item" + (item.research ? " research" : "") + (item.practice ? " practice" : "");
     var checked = isChecked(catId, item.code, item.defaultChecked);
     if(checked) row.classList.add("checked");
 
@@ -1274,6 +1320,7 @@
     function updateDoneTitle(){
       var parts = [];
       if(item.research) parts.push(t().researchHint);
+      if(item.practice) parts.push(t().practiceHint);
       var at = checkedAt(catId, item.code);
       if(at) parts.push(t().completedOn(formatDate(at)));
       row.title = parts.join(" · ");
@@ -1299,10 +1346,12 @@
     if(!progressEls || !cat) return;
     progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.totalPct + "%)";
     if(progressEls.fracResearch) progressEls.fracResearch.textContent = p.totalResearch ? "+" + p.doneResearch + "/" + p.totalResearch + " R" : "";
+    if(progressEls.fracPractice) progressEls.fracPractice.textContent = p.totalPractice ? "+" + p.donePractice + "/" + p.totalPractice + " P" : "";
     progressEls.segments.forEach(function(seg){
       var sp = progressForItems(catId, seg.items);
       seg.fill.style.width = Math.min(sp.pct, 100) + "%";
       if(seg.bonusFill) seg.bonusFill.style.width = sp.researchPct + "%";
+      if(seg.practiceFill) seg.practiceFill.style.width = sp.practicePct + "%";
     });
   }
 
@@ -1361,7 +1410,7 @@
   function graphNodeEl(n, catId, interactive){
     var el = document.createElement("div");
     el.className = "graph-node" + (interactive ? "" : " graph-dot") +
-      (n.research ? " research" : "") + (isChecked(catId, n.code) ? " checked" : "");
+      (n.research ? " research" : "") + (n.practice ? " practice" : "") + (isChecked(catId, n.code) ? " checked" : "");
     if(interactive) el.textContent = n.text;
     else el.title = n.text;
     el.dataset.code = n.code;
@@ -1376,7 +1425,7 @@
     var w = container.clientWidth || 200, h = container.clientHeight || 200;
     var levels = computeGraphLevels(graph.nodes, graph.edges);
     var simNodes = graph.nodes.map(function(n){
-      return { code: n.code, text: n.text, research: !!n.research, level: levels[n.code] || 0 };
+      return { code: n.code, text: n.text, research: !!n.research, practice: !!n.practice, level: levels[n.code] || 0 };
     });
     var byCode = {};
     simNodes.forEach(function(n){ byCode[n.code] = n; });
@@ -1588,6 +1637,7 @@
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
       '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.totalPct + '%)</span>' +
         (p.totalResearch ? ' <span class="count-research" id="fracResearch">+' + p.doneResearch + '/' + p.totalResearch + ' R</span>' : '') +
+        (p.totalPractice ? ' <span class="count-practice" id="fracPractice">+' + p.donePractice + '/' + p.totalPractice + ' P</span>' : '') +
       '</div></div>' +
       '<div class="head-actions">' +
         (hasGraph ?
@@ -1619,13 +1669,14 @@
 
       var group = document.createElement("div");
       group.className = "seg-group";
-      group.style.flex = (sp.total + sp.totalResearch) + " 1 0";
+      group.style.flex = (sp.total + sp.totalResearch + sp.totalPractice) + " 1 0";
 
       var seg = document.createElement("div");
       seg.className = "seg";
       seg.style.flex = sp.total + " 1 0";
       seg.title = (part.title || cat.title) + ": " + sp.done + " / " + sp.total +
-        (sp.totalResearch ? " (+" + sp.doneResearch + "/" + sp.totalResearch + " R)" : "");
+        (sp.totalResearch ? " (+" + sp.doneResearch + "/" + sp.totalResearch + " R)" : "") +
+        (sp.totalPractice ? " (+" + sp.donePractice + "/" + sp.totalPractice + " P)" : "");
       var fill = document.createElement("i");
       fill.style.width = Math.min(sp.pct, 100) + "%";
       seg.appendChild(fill);
@@ -1643,12 +1694,24 @@
         group.appendChild(bonusSeg);
       }
 
+      var practiceFill = null;
+      if(sp.totalPractice){
+        var practiceSeg = document.createElement("div");
+        practiceSeg.className = "seg seg-practice";
+        practiceSeg.style.flex = sp.totalPractice + " 1 0";
+        practiceSeg.title = seg.title;
+        practiceFill = document.createElement("i");
+        practiceFill.style.width = sp.practicePct + "%";
+        practiceSeg.appendChild(practiceFill);
+        group.appendChild(practiceSeg);
+      }
+
       bar.appendChild(group);
-      segments.push({ items: items, fill: fill, bonusFill: bonusFill });
+      segments.push({ items: items, fill: fill, bonusFill: bonusFill, practiceFill: practiceFill });
     });
     app.appendChild(bar);
 
-    progressEls = { frac: head.querySelector("#frac"), fracResearch: head.querySelector("#fracResearch"), segments: segments };
+    progressEls = { frac: head.querySelector("#frac"), fracResearch: head.querySelector("#fracResearch"), fracPractice: head.querySelector("#fracPractice"), segments: segments };
 
     head.querySelector(".download-btn").addEventListener("click", function(){
       downloadText(cat.file || (catId + ".md"), cat.raw || "");
