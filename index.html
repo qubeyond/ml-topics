@@ -60,6 +60,8 @@
     overscroll-behavior-y:contain;
     -webkit-tap-highlight-color:transparent;
   }
+  a{color:inherit;text-decoration:none;}
+  a:visited{color:inherit;}
   a, button, .item, .card{-webkit-tap-highlight-color:transparent;}
   .wrap{
     max-width:760px;margin:0 auto;padding:48px 24px 96px;
@@ -102,6 +104,9 @@
     justify-content:space-between;
     height:150px;
   }
+  @media (max-width:640px){
+    .card{height:118px;padding:15px 15px 13px;}
+  }
   .card:hover, .card:focus-visible{
     transform:translateY(-4px);
     box-shadow:var(--shadow-2);
@@ -112,10 +117,24 @@
     font-size:14.5px;font-weight:600;margin:0;letter-spacing:-.01em;line-height:1.35;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
   }
-  .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);}
+  .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin-bottom:7px;}
   .card .meta .pct{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg);}
+  .card .counts{display:flex;align-items:center;gap:7px;}
+  .card .count-research{color:var(--research);}
   .bar{height:4px;border-radius:999px;background:var(--track);overflow:hidden;}
   .bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
+  .card .bar-group{display:flex;gap:3px;}
+  .card .bar-group .bar{min-width:3px;}
+  .card .bar-group .bar-bonus{background:var(--research-track);}
+  .card .bar-group .bar-bonus > i{background:var(--research);}
+
+  /* ---------- домены на главной ---------- */
+  .domain-heading{
+    font-size:12px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--muted);font-weight:700;
+    margin:32px 0 14px;
+  }
+  .domain-heading:first-child{margin-top:0;}
 
   /* ---------- floating nav buttons ---------- */
   .fab{
@@ -160,13 +179,16 @@
   }
   .site-footer a{transition:color .15s ease;}
   .site-footer a:hover{color:var(--fg);}
-  /* на мобильных переносим футер наверх (снизу его перекрывает клавиатура/системная навигация) */
+  /* на мобильных переносим футер наверх по центру и показываем только на главной */
   @media (max-width:640px){
     .site-footer{
-      left:max(20px, calc(20px + env(safe-area-inset-left)));
+      left:50%;
+      right:auto;
+      transform:translateX(-50%);
       top:max(28px, calc(28px + env(safe-area-inset-top)));
       bottom:auto;
     }
+    body:not(.is-home) .site-footer{display:none;}
   }
 
   /* ---------- settings modal (язык + синк) ---------- */
@@ -317,6 +339,11 @@
   .item input[type=checkbox]:checked::before{transform:scale(1);}
   .item .txt{font-size:14.5px;line-height:1.5;}
   .item .code{color:var(--faint);opacity:.65;font-variant-numeric:tabular-nums;margin-right:6px;font-size:9px;}
+  .item .done-date{
+    margin-left:auto;padding-left:10px;flex-shrink:0;
+    font-size:10px;color:var(--faint);white-space:nowrap;
+  }
+  .item .done-date:empty{display:none;}
   .item.checked .label{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--border);}
   .item a{text-decoration:underline;text-decoration-color:var(--muted);text-underline-offset:3px;}
   .item a:hover{text-decoration-color:currentColor;}
@@ -408,7 +435,9 @@
       syncClose: "Закрыть",
       settingsTitle: "Настройки",
       langLabel: "Язык",
-      syncSectionLabel: "Синхронизация"
+      syncSectionLabel: "Синхронизация",
+      domainMl: "ML",
+      domainMath: "Математика"
     },
     en: {
       partWord: "Part",
@@ -442,7 +471,9 @@
       syncClose: "Close",
       settingsTitle: "Settings",
       langLabel: "Language",
-      syncSectionLabel: "Sync"
+      syncSectionLabel: "Sync",
+      domainMl: "ML",
+      domainMath: "Math"
     }
   };
   function t(){ return STRINGS[LANG]; }
@@ -897,6 +928,7 @@
           if(localTitle) parsed.title = localTitle;
           parsed.raw = text;
           parsed.file = entry.file;
+          parsed.domain = entry.domain || "";
           CATALOG[entry.id] = parsed;
         });
       }));
@@ -953,42 +985,85 @@
   // ---------------------------------------------------------------------
   var app = document.getElementById("app");
 
+  var DOMAIN_LABEL_KEY = { ml: "domainMl", math: "domainMath" };
+
+  function renderCard(id){
+    var cat = CATALOG[id];
+    var p = progressFor(id);
+    var card = document.createElement("div");
+    card.className = "card";
+    card.tabIndex = 0;
+
+    var countsHtml = '<span class="count-normal">' + p.done + '/' + p.total + '</span>';
+    if(p.totalResearch){
+      countsHtml += '<span class="count-research">' + p.doneResearch + '/' + p.totalResearch + '</span>';
+    }
+
+    var barHtml;
+    if(p.totalResearch){
+      barHtml =
+        '<div class="bar-group">' +
+          '<div class="bar" style="flex:' + p.total + '"><i style="width:' + Math.min(p.pct, 100) + '%"></i></div>' +
+          '<div class="bar bar-bonus" style="flex:' + p.totalResearch + '"><i style="width:' + p.researchPct + '%"></i></div>' +
+        '</div>';
+    } else {
+      barHtml = '<div class="bar"><i style="width:' + Math.min(p.pct, 100) + '%"></i></div>';
+    }
+
+    card.innerHTML =
+      '<h2>' + escapeHtml(cat.title) + '</h2>' +
+      '<div>' +
+        '<div class="meta"><span class="counts">' + countsHtml + '</span><span class="pct">' + p.totalPct + '%</span></div>' +
+        barHtml +
+      '</div>';
+    function go(){ location.hash = "#/" + id; }
+    card.addEventListener("click", go);
+    card.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } });
+    return card;
+  }
+
   function renderHome(){
     var head = document.createElement("header");
     head.className = "top";
     head.innerHTML = '<h1>ML Topics</h1>';
 
-    var grid = document.createElement("div");
-    grid.className = "grid";
+    app.innerHTML = "";
+    app.appendChild(head);
 
+    var lastDomain;
+    var grid = null;
     ORDER.forEach(function(id){
       var cat = CATALOG[id];
       if(!cat) return;
-      var p = progressFor(id);
-      var card = document.createElement("div");
-      card.className = "card";
-      card.tabIndex = 0;
-      card.innerHTML =
-        '<h2>' + escapeHtml(cat.title) + '</h2>' +
-        '<div>' +
-          '<div class="meta"><span>' + p.done + ' / ' + p.total + '</span><span class="pct">' + p.totalPct + '%</span></div>' +
-          '<div class="bar"><i style="width:' + Math.min(p.pct, 100) + '%"></i></div>' +
-        '</div>';
-      function go(){ location.hash = "#/" + id; }
-      card.addEventListener("click", go);
-      card.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); go(); } });
-      grid.appendChild(card);
+      if(cat.domain !== lastDomain){
+        lastDomain = cat.domain;
+        var labelKey = DOMAIN_LABEL_KEY[cat.domain];
+        if(labelKey){
+          var heading = document.createElement("div");
+          heading.className = "domain-heading";
+          heading.textContent = t()[labelKey];
+          app.appendChild(heading);
+        }
+        grid = document.createElement("div");
+        grid.className = "grid";
+        app.appendChild(grid);
+      }
+      grid.appendChild(renderCard(id));
     });
-
-    app.innerHTML = "";
-    app.appendChild(head);
-    app.appendChild(grid);
   }
 
   function formatDate(ts){
     try {
       return new Intl.DateTimeFormat(LANG === "ru" ? "ru-RU" : "en-US", {
         year: "numeric", month: "short", day: "numeric"
+      }).format(new Date(ts));
+    } catch(e){ return ""; }
+  }
+
+  function formatDateShort(ts){
+    try {
+      return new Intl.DateTimeFormat(LANG === "ru" ? "ru-RU" : "en-US", {
+        month: "short", day: "numeric"
       }).format(new Date(ts));
     } catch(e){ return ""; }
   }
@@ -1007,8 +1082,12 @@
     label.className = "txt label";
     label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' + inlineMd(item.text);
 
+    var dateEl = document.createElement("span");
+    dateEl.className = "done-date";
+
     row.appendChild(cb);
     row.appendChild(label);
+    row.appendChild(dateEl);
 
     function updateDoneTitle(){
       var parts = [];
@@ -1016,6 +1095,7 @@
       var at = checkedAt(catId, item.code);
       if(at) parts.push(t().completedOn(formatDate(at)));
       row.title = parts.join(" · ");
+      dateEl.textContent = at ? formatDateShort(at) : "";
     }
     updateDoneTitle();
 
@@ -1208,6 +1288,7 @@
     var hash = location.hash.replace(/^#\/?/, "");
     backBtn.style.display = hash ? "flex" : "none";
     settingsBtn.style.display = hash ? "none" : "flex";
+    document.body.classList.toggle("is-home", !hash);
     if(!hash){ renderHome(); return; }
     renderDetail(hash);
   }

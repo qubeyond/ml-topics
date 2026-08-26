@@ -3,48 +3,56 @@
     "id": "ml-base",
     "file": "ml-base.md",
     "title": "ML-база",
-    "title_en": "ML Base"
+    "title_en": "ML Base",
+    "domain": "ml"
   },
   {
     "id": "deep-learning",
     "file": "deep-learning.md",
     "title": "Deep Learning",
-    "title_en": "Deep Learning"
+    "title_en": "Deep Learning",
+    "domain": "ml"
   },
   {
     "id": "nlp",
     "file": "nlp.md",
     "title": "NLP",
-    "title_en": "NLP"
+    "title_en": "NLP",
+    "domain": "ml"
   },
   {
     "id": "algebra",
     "file": "algebra.md",
     "title": "Алгебра",
-    "title_en": "Algebra"
+    "title_en": "Algebra",
+    "domain": "math"
   },
   {
     "id": "matan",
     "file": "matan.md",
     "title": "Математический анализ",
-    "title_en": "Calculus"
+    "title_en": "Calculus",
+    "domain": "math"
   },
   {
     "id": "combinatorics",
     "file": "combinatorics.md",
     "title": "Комбинаторика",
-    "title_en": "Combinatorics"
+    "title_en": "Combinatorics",
+    "domain": "math"
   },
   {
     "id": "probability",
     "file": "probability.md",
     "title": "Теория вероятностей",
-    "title_en": "Probability Theory"
+    "title_en": "Probability Theory",
+    "domain": "math"
   },
   {
     "id": "algorithms",
     "file": "algorithms.md",
     "title": "Алгоритмы и структуры данных",
-    "title_en": "Algorithms and Data Structures"
+    "title_en": "Algorithms and Data Structures",
+    "domain": "math"
   }
 ]
