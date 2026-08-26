@@ -2,8 +2,16 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>ML Topics</title>
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ML Topics">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Crect%20width%3D%2224%22%20height%3D%2224%22%20rx%3D%225%22%20fill%3D%22%230f0f10%22/%3E%3Cpath%20d%3D%22M7%204h10l3.2%205L12%2020.5%203.8%209Z%22%20fill%3D%22none%22%20stroke%3D%22%23f5f5f5%22%20stroke-width%3D%221.5%22%20stroke-linejoin%3D%22round%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M9.5%204%207.8%209l4.2%2011.5L16.2%209%2014.5%204%22%20fill%3D%22none%22%20stroke%3D%22%23f5f5f5%22%20stroke-width%3D%221.2%22%20stroke-linejoin%3D%22round%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M3.8%209h16.4%22%20stroke%3D%22%23f5f5f5%22%20stroke-width%3D%221.2%22%20stroke-linecap%3D%22round%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,15 +45,24 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
   body{
     background:var(--bg);
     color:var(--fg);
     font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     -webkit-font-smoothing:antialiased;
     min-height:100vh;
+    min-height:100dvh;
+    overscroll-behavior-y:contain;
+    -webkit-tap-highlight-color:transparent;
   }
-  a{color:inherit;text-decoration:none;}
-  .wrap{max-width:760px;margin:0 auto;padding:48px 24px 96px;}
+  a, button, .item, .card{-webkit-tap-highlight-color:transparent;}
+  .wrap{
+    max-width:760px;margin:0 auto;padding:48px 24px 96px;
+    padding-left:max(24px, env(safe-area-inset-left));
+    padding-right:max(24px, env(safe-area-inset-right));
+    padding-bottom:max(96px, calc(96px + env(safe-area-inset-bottom)));
+  }
 
   /* ---------- header ---------- */
   header.top{text-align:center;margin-bottom:36px;}
@@ -114,25 +131,59 @@
   .fab svg{width:18px;height:18px;}
   /* держим кнопки у краёв контент-блока (760px, центрирован), но не даём им уехать за экран */
   /* 380px = половина ширины .wrap (760px), 42px = ширина кнопки, 16px = зазор до контента */
-  #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px)); bottom:28px; opacity:0; pointer-events:none; }
+  #topBtn{ right:max(16px, calc(50vw - 380px - 42px - 16px + env(safe-area-inset-right))); bottom:max(28px, calc(28px + env(safe-area-inset-bottom))); opacity:0; pointer-events:none; }
   #topBtn.visible{opacity:1;pointer-events:auto;}
-  #backBtn{ left:max(16px, calc(50vw - 380px - 42px - 16px)); top:28px; display:none; }
-  #langBtn{ right:max(16px, calc(50vw - 380px - 50px - 16px)); top:28px; width:auto; padding:0 14px; font-size:12px; font-weight:700; letter-spacing:.03em; }
+  #backBtn{ left:max(16px, calc(50vw - 380px - 42px - 16px + env(safe-area-inset-left))); top:max(28px, calc(28px + env(safe-area-inset-top))); display:none; }
+  #langBtn{ right:max(16px, calc(50vw - 380px - 50px - 16px + env(safe-area-inset-right))); top:max(28px, calc(28px + env(safe-area-inset-top))); width:auto; padding:0 14px; font-size:12px; font-weight:700; letter-spacing:.03em; }
   /* ниже 900px кнопки по горизонтали упираются в заголовок/шапку — уводим вниз */
   @media (max-width:900px){
-    #backBtn{top:92px;}
-    #langBtn{top:92px;}
+    #backBtn{top:max(92px, calc(92px + env(safe-area-inset-top)));}
+    #langBtn{top:max(92px, calc(92px + env(safe-area-inset-top)));}
   }
 
   .site-footer{
     position:fixed;
-    left:20px;bottom:20px;
+    left:max(20px, calc(20px + env(safe-area-inset-left)));
+    bottom:max(20px, calc(20px + env(safe-area-inset-bottom)));
     font-size:11.5px;
     color:var(--faint);
     z-index:40;
+    display:flex;align-items:center;gap:7px;
   }
   .site-footer a{transition:color .15s ease;}
   .site-footer a:hover{color:var(--fg);}
+  .site-footer .sep{color:var(--border);}
+  .site-footer .sync-link{
+    font-family:inherit;font-size:11.5px;color:var(--faint);
+    background:none;border:none;padding:0;cursor:pointer;
+    transition:color .15s ease;
+  }
+  .site-footer .sync-link:hover{color:var(--fg);}
+  .site-footer .sync-link.on{color:var(--muted);}
+  .site-footer .sync-link.on::before{content:"● ";font-size:8px;vertical-align:1px;}
+  .site-footer .sync-link.err{color:var(--fg);}
+  .site-footer .sync-link.err::before{content:"● ";color:var(--fg);font-size:8px;vertical-align:1px;}
+
+  /* ---------- sync modal ---------- */
+  .sync-modal{max-width:380px;text-align:left;}
+  .sync-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .sync-head h3{font-size:16px;margin:0;letter-spacing:-.01em;}
+  .sync-head .icon-btn{width:28px;height:28px;min-width:28px;flex:none;}
+  .sync-head .icon-btn svg{width:14px;height:14px;}
+  .sync-modal p{margin:0 0 12px;font-size:12.5px;line-height:1.55;color:var(--muted);text-align:left;}
+  .sync-modal a{text-decoration:underline;text-decoration-color:var(--muted);color:var(--fg);}
+  .sync-token-label{display:block;font-size:11.5px;color:var(--muted);margin-bottom:14px;}
+  .sync-token-input{
+    display:block;width:100%;margin-top:6px;
+    font-family:inherit;font-size:13px;color:var(--fg);
+    background:var(--bg);border:1px solid var(--border);border-radius:8px;
+    padding:9px 10px;box-sizing:border-box;
+  }
+  .sync-token-input:focus{outline:none;border-color:var(--muted);}
+  .sync-connected-as{color:var(--fg);font-weight:600;font-size:13px;}
+  .sync-error{color:var(--fg);background:var(--track);border-radius:8px;padding:8px 10px;}
+  .sync-modal .modal-actions{justify-content:space-between;}
+  .sync-modal .btn-confirm[disabled], .sync-modal .btn-cancel[disabled]{opacity:.5;cursor:default;}
 
   /* ---------- detail page ---------- */
   .detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:8px;flex-wrap:wrap;}
@@ -252,6 +303,13 @@
   .item a{text-decoration:underline;text-decoration-color:var(--muted);text-underline-offset:3px;}
   .item a:hover{text-decoration-color:currentColor;}
 
+  /* тач-устройства: чекбокс и сама строка пункта побольше, легче попасть пальцем */
+  @media (pointer:coarse){
+    .item{padding:10px 2px;min-height:26px;}
+    .item input[type=checkbox]{width:21px;height:21px;min-width:21px;}
+    .icon-btn, .fab{width:44px;height:44px;min-width:44px;}
+  }
+
   /* ресерч-темы (необязательный "углублённый" уровень): пунктирный чекбокс + бейдж R */
   .item.research input[type=checkbox]{border-style:dashed;}
   .item.research input[type=checkbox]:checked{border-style:solid;}
@@ -281,8 +339,24 @@
   var state = {};
   try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch(e){ state = {}; }
 
+  // Формат записи: {d: done?, t: timestamp последнего изменения}. Раньше тут
+  // просто лежал boolean — на лету приводим старые данные к новому виду.
+  // "t" — не только "когда прошёл тему", но и ключ для merge при синке.
+  function migrateState(obj){
+    Object.keys(obj || {}).forEach(function(catId){
+      var cat = obj[catId];
+      Object.keys(cat || {}).forEach(function(code){
+        var v = cat[code];
+        if(typeof v === "boolean"){ cat[code] = { d: v, t: 0 }; }
+      });
+    });
+    return obj;
+  }
+  state = migrateState(state);
+
   function saveState(){
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+    scheduleSyncPush();
   }
 
   // ---------------------------------------------------------------------
@@ -304,7 +378,26 @@
       confirmBtn: "Сбросить",
       resetConfirm: function(title){ return 'Сбросить прогресс по разделу «' + title + '»?'; },
       notFound: "Категория не найдена.",
-      researchHint: "Необязательная тема углублённого уровня — не входит в основной %, даёт бонус сверху"
+      researchHint: "Необязательная тема углублённого уровня — не входит в основной %, даёт бонус сверху",
+      completedOn: function(date){ return "Пройдено: " + date; },
+      syncing: "Синк…",
+      synced: function(login){ return "Синк: " + login; },
+      syncOff: "Синк выкл",
+      syncTitle: "Синхронизация между устройствами",
+      syncIntro: "Прогресс хранится в приватном GitHub Gist — только твой браузер обращается к api.github.com напрямую, никакой другой сервер данные не видит.",
+      syncHowTo: "Создай токен на странице ",
+      syncHowToLinkText: "github.com/settings/tokens/new",
+      syncHowToAfter: " — тип classic, единственный галочка scope: «gist». Ничего больше не отмечай.",
+      syncTokenLabel: "Personal access token",
+      syncTokenPlaceholder: "ghp_…",
+      syncConnectBtn: "Подключить",
+      syncDisconnectBtn: "Отключить и забыть токен",
+      syncNowBtn: "Синхронизировать сейчас",
+      syncConnectedAs: function(login){ return "Подключено как " + login; },
+      syncLastSync: function(date){ return "Последний синк: " + date; },
+      syncNeverSynced: "Ещё не синхронизировалось",
+      syncErrorPrefix: "Ошибка синка: ",
+      syncClose: "Закрыть"
     },
     en: {
       partWord: "Part",
@@ -316,20 +409,45 @@
       confirmBtn: "Reset",
       resetConfirm: function(title){ return "Reset progress for “" + title + "”?"; },
       notFound: "Category not found.",
-      researchHint: "Optional deep-dive topic — outside the main %, counts as a bonus on top"
+      researchHint: "Optional deep-dive topic — outside the main %, counts as a bonus on top",
+      completedOn: function(date){ return "Completed: " + date; },
+      syncing: "Syncing…",
+      synced: function(login){ return "Sync: " + login; },
+      syncOff: "Sync off",
+      syncTitle: "Sync across devices",
+      syncIntro: "Progress is stored in a private GitHub Gist — only your browser talks to api.github.com directly, no other server ever sees the data.",
+      syncHowTo: "Create a token at ",
+      syncHowToLinkText: "github.com/settings/tokens/new",
+      syncHowToAfter: " — type classic, tick only the “gist” scope. Nothing else.",
+      syncTokenLabel: "Personal access token",
+      syncTokenPlaceholder: "ghp_…",
+      syncConnectBtn: "Connect",
+      syncDisconnectBtn: "Disconnect and forget token",
+      syncNowBtn: "Sync now",
+      syncConnectedAs: function(login){ return "Connected as " + login; },
+      syncLastSync: function(date){ return "Last synced: " + date; },
+      syncNeverSynced: "Not synced yet",
+      syncErrorPrefix: "Sync error: ",
+      syncClose: "Close"
     }
   };
   function t(){ return STRINGS[LANG]; }
 
   function isChecked(catId, code, defaultChecked){
     var cat = state[catId];
-    if(cat && Object.prototype.hasOwnProperty.call(cat, code)) return !!cat[code];
+    if(cat && Object.prototype.hasOwnProperty.call(cat, code)) return !!cat[code].d;
     return !!defaultChecked;
+  }
+
+  function checkedAt(catId, code){
+    var cat = state[catId];
+    var v = cat && cat[code];
+    return (v && v.d && v.t) ? v.t : null;
   }
 
   function setChecked(catId, code, value){
     if(!state[catId]) state[catId] = {};
-    state[catId][code] = value;
+    state[catId][code] = { d: value, t: Date.now() };
     saveState();
   }
 
@@ -337,6 +455,174 @@
     delete state[catId];
     saveState();
   }
+
+  // ---------------------------------------------------------------------
+  // GitHub Gist sync — без бэкенда: личный токен (scope "gist") живёт
+  // только в localStorage этого браузера, все запросы идут напрямую с
+  // клиента на api.github.com. Наружу (кроме самого GitHub) ничего не
+  // уходит. Синк — это pull + merge (по свежести "t" на каждый пункт,
+  // last-write-wins) + push.
+  // ---------------------------------------------------------------------
+  var GH_TOKEN_KEY = "mltopics:gh-token";
+  var GH_GIST_ID_KEY = "mltopics:gh-gist-id";
+  var GH_LOGIN_KEY = "mltopics:gh-login";
+  var GIST_FILENAME = "mltopics-progress.json";
+  var SYNC_DEBOUNCE_MS = 2500;
+
+  var sync = {
+    connected: false,
+    login: null,
+    syncing: false,
+    error: null,
+    lastSyncAt: null,
+    onChange: null // UI подписывается сюда, если открыта панель синка
+  };
+
+  function ghToken(){ try { return localStorage.getItem(GH_TOKEN_KEY) || ""; } catch(e){ return ""; } }
+  function setGhToken(tok){
+    try {
+      if(tok) localStorage.setItem(GH_TOKEN_KEY, tok);
+      else { localStorage.removeItem(GH_TOKEN_KEY); localStorage.removeItem(GH_GIST_ID_KEY); localStorage.removeItem(GH_LOGIN_KEY); }
+    } catch(e){}
+  }
+
+  function notifySync(){ if(sync.onChange) sync.onChange(); }
+
+  function ghApi(path, opts){
+    opts = opts || {};
+    var headers = Object.assign({
+      "Authorization": "token " + ghToken(),
+      "Accept": "application/vnd.github+json"
+    }, opts.headers || {});
+    return fetch("https://api.github.com" + path, Object.assign({}, opts, { headers: headers }))
+      .then(function(r){
+        if(!r.ok){
+          return r.json().catch(function(){ return null; }).then(function(body){
+            var msg = (body && body.message) ? body.message : ("HTTP " + r.status);
+            throw new Error(msg);
+          });
+        }
+        return r.status === 204 ? null : r.json();
+      });
+  }
+
+  function resolveGistId(){
+    var cached = null;
+    try { cached = localStorage.getItem(GH_GIST_ID_KEY); } catch(e){}
+    if(cached) return Promise.resolve(cached);
+    return ghApi("/gists?per_page=100").then(function(gists){
+      var found = (gists || []).find(function(g){ return g.files && g.files[GIST_FILENAME]; });
+      if(found){ try { localStorage.setItem(GH_GIST_ID_KEY, found.id); } catch(e){} return found.id; }
+      return null;
+    });
+  }
+
+  function makeFilesPayload(stateObj){
+    var files = {};
+    files[GIST_FILENAME] = { content: JSON.stringify(stateObj) };
+    return files;
+  }
+
+  function pullRemoteState(){
+    return resolveGistId().then(function(id){
+      if(!id) return {};
+      return ghApi("/gists/" + id).then(function(gist){
+        var file = gist.files && gist.files[GIST_FILENAME];
+        if(!file) return {};
+        try { return migrateState(JSON.parse(file.content || "{}")); } catch(e){ return {}; }
+      });
+    });
+  }
+
+  function pushRemoteState(stateObj){
+    return resolveGistId().then(function(id){
+      if(id){
+        return ghApi("/gists/" + id, { method: "PATCH", body: JSON.stringify({ files: makeFilesPayload(stateObj) }) });
+      }
+      return ghApi("/gists", {
+        method: "POST",
+        body: JSON.stringify({
+          description: "ML Topics — прогресс (автоматически, руками не редактировать)",
+          public: false,
+          files: makeFilesPayload(stateObj)
+        })
+      }).then(function(gist){
+        try { localStorage.setItem(GH_GIST_ID_KEY, gist.id); } catch(e){}
+        return gist;
+      });
+    });
+  }
+
+  function mergeStates(local, remote){
+    var merged = {};
+    var catIds = Object.keys(local).concat(Object.keys(remote)).filter(function(v,i,a){ return a.indexOf(v)===i; });
+    catIds.forEach(function(catId){
+      merged[catId] = {};
+      var lc = local[catId] || {}, rc = remote[catId] || {};
+      var codes = Object.keys(lc).concat(Object.keys(rc)).filter(function(v,i,a){ return a.indexOf(v)===i; });
+      codes.forEach(function(code){
+        var l = lc[code], r = rc[code];
+        if(l && r){ merged[catId][code] = (l.t || 0) >= (r.t || 0) ? l : r; }
+        else { merged[catId][code] = l || r; }
+      });
+    });
+    return merged;
+  }
+
+  var syncTimer = null;
+  function scheduleSyncPush(){
+    if(!ghToken()) return;
+    if(syncTimer) clearTimeout(syncTimer);
+    syncTimer = setTimeout(function(){ syncNow().catch(function(){}); }, SYNC_DEBOUNCE_MS);
+  }
+
+  function syncNow(){
+    if(!ghToken()){ return Promise.reject(new Error("not connected")); }
+    sync.syncing = true; sync.error = null; notifySync();
+    return pullRemoteState().then(function(remote){
+      var merged = mergeStates(state, remote);
+      state = merged;
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+      route();
+      return pushRemoteState(merged);
+    }).then(function(){
+      sync.syncing = false; sync.connected = true; sync.lastSyncAt = Date.now();
+      notifySync();
+    }).catch(function(err){
+      sync.syncing = false; sync.error = err.message || String(err);
+      notifySync();
+      throw err;
+    });
+  }
+
+  function connectSync(token){
+    setGhToken(token);
+    sync.error = null; sync.syncing = true; notifySync();
+    return ghApi("/user").then(function(user){
+      sync.login = user.login;
+      try { localStorage.setItem(GH_LOGIN_KEY, user.login); } catch(e){}
+      sync.connected = true;
+      return syncNow();
+    }).catch(function(err){
+      sync.syncing = false; sync.connected = false; sync.error = err.message || String(err);
+      setGhToken(null);
+      notifySync();
+      throw err;
+    });
+  }
+
+  function disconnectSync(){
+    setGhToken(null);
+    sync.connected = false; sync.login = null; sync.error = null; sync.lastSyncAt = null;
+    notifySync();
+  }
+
+  try {
+    if(ghToken()){
+      sync.connected = true;
+      sync.login = localStorage.getItem(GH_LOGIN_KEY) || null;
+    }
+  } catch(e){}
 
   function downloadText(filename, text){
     var blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
@@ -375,6 +661,78 @@
     backdrop.querySelector(".btn-confirm").addEventListener("click", function(){
       close();
       onConfirm();
+    });
+  }
+
+  var syncPanelRefresh = null;
+
+  function openSyncPanel(){
+    var backdrop = document.createElement("div");
+    backdrop.className = "modal-backdrop";
+    backdrop.innerHTML = '<div class="modal sync-modal" role="dialog" aria-modal="true"></div>';
+    document.body.appendChild(backdrop);
+    var modal = backdrop.querySelector(".sync-modal");
+
+    function render(){
+      var s = t();
+      var body;
+      if(sync.connected){
+        body =
+          '<p class="sync-connected-as">' + escapeHtml(s.syncConnectedAs(sync.login || "…")) + '</p>' +
+          '<p class="sync-last">' + escapeHtml(sync.lastSyncAt ? s.syncLastSync(formatDate(sync.lastSyncAt)) : s.syncNeverSynced) + '</p>' +
+          (sync.error ? '<p class="sync-error">' + escapeHtml(s.syncErrorPrefix + sync.error) + '</p>' : '') +
+          '<div class="modal-actions">' +
+            '<button type="button" class="btn-cancel sync-disconnect-btn">' + escapeHtml(s.syncDisconnectBtn) + '</button>' +
+            '<button type="button" class="btn-confirm sync-now-btn"' + (sync.syncing ? ' disabled' : '') + '>' +
+              escapeHtml(sync.syncing ? s.syncing : s.syncNowBtn) +
+            '</button>' +
+          '</div>';
+      } else {
+        body =
+          '<p class="sync-intro">' + escapeHtml(s.syncIntro) + '</p>' +
+          '<p class="sync-howto">' + escapeHtml(s.syncHowTo) +
+            '<a href="https://github.com/settings/tokens/new?scopes=gist&description=ML%20Topics%20sync" target="_blank" rel="noopener">' +
+              escapeHtml(s.syncHowToLinkText) +
+            '</a>' + escapeHtml(s.syncHowToAfter) + '</p>' +
+          '<label class="sync-token-label">' + escapeHtml(s.syncTokenLabel) +
+            '<input type="password" class="sync-token-input" placeholder="' + escapeHtml(s.syncTokenPlaceholder) + '" autocomplete="off" spellcheck="false">' +
+          '</label>' +
+          (sync.error ? '<p class="sync-error">' + escapeHtml(s.syncErrorPrefix + sync.error) + '</p>' : '') +
+          '<div class="modal-actions">' +
+            '<button type="button" class="btn-confirm sync-connect-btn"' + (sync.syncing ? ' disabled' : '') + '>' +
+              escapeHtml(sync.syncing ? s.syncing : s.syncConnectBtn) +
+            '</button>' +
+          '</div>';
+      }
+      modal.innerHTML =
+        '<div class="sync-head"><h3>' + escapeHtml(s.syncTitle) + '</h3>' +
+          '<button type="button" class="icon-btn sync-close-btn" aria-label="' + escapeHtml(s.syncClose) + '">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>' +
+          '</button>' +
+        '</div>' + body;
+    }
+    render();
+    syncPanelRefresh = render;
+
+    function close(){
+      syncPanelRefresh = null;
+      document.removeEventListener("keydown", onKey);
+      backdrop.remove();
+    }
+    function onKey(e){ if(e.key === "Escape") close(); }
+    document.addEventListener("keydown", onKey);
+    backdrop.addEventListener("click", function(e){ if(e.target === backdrop) close(); });
+
+    modal.addEventListener("click", function(e){
+      if(e.target.closest(".sync-close-btn")){ close(); return; }
+      if(e.target.closest(".sync-disconnect-btn")){ disconnectSync(); render(); return; }
+      if(e.target.closest(".sync-now-btn")){ syncNow().catch(function(){}); return; }
+      if(e.target.closest(".sync-connect-btn")){
+        var input = modal.querySelector(".sync-token-input");
+        var tok = input ? input.value.trim() : "";
+        if(!tok) return;
+        connectSync(tok).then(render).catch(function(){ render(); });
+      }
     });
   }
 
@@ -584,6 +942,14 @@
     app.appendChild(grid);
   }
 
+  function formatDate(ts){
+    try {
+      return new Intl.DateTimeFormat(LANG === "ru" ? "ru-RU" : "en-US", {
+        year: "numeric", month: "short", day: "numeric"
+      }).format(new Date(ts));
+    } catch(e){ return ""; }
+  }
+
   function renderItem(catId, item){
     var row = document.createElement("label");
     row.className = "item" + (item.research ? " research" : "");
@@ -604,9 +970,16 @@
     row.appendChild(cb);
     row.appendChild(label);
 
+    function updateDoneTitle(){
+      var at = checkedAt(catId, item.code);
+      row.title = at ? t().completedOn(formatDate(at)) : "";
+    }
+    updateDoneTitle();
+
     cb.addEventListener("change", function(){
       setChecked(catId, item.code, cb.checked);
       row.classList.toggle("checked", cb.checked);
+      updateDoneTitle();
       updateDetailProgress(catId);
     });
 
@@ -787,8 +1160,23 @@
 
   var footer = document.createElement("div");
   footer.className = "site-footer";
-  footer.innerHTML = '<a href="https://github.com/qubeyond" target="_blank" rel="noopener">github.com/qubeyond</a>';
+  footer.innerHTML =
+    '<a href="https://github.com/qubeyond" target="_blank" rel="noopener">github.com/qubeyond</a>' +
+    '<span class="sep">·</span>' +
+    '<button type="button" class="sync-link" id="syncLink"></button>';
   document.body.appendChild(footer);
+
+  var syncLinkBtn = footer.querySelector("#syncLink");
+  function refreshSyncLink(){
+    syncLinkBtn.classList.toggle("on", sync.connected);
+    syncLinkBtn.classList.toggle("err", !!sync.error);
+    syncLinkBtn.textContent = sync.syncing ? t().syncing
+      : sync.connected ? t().synced
+      : t().syncOff;
+  }
+  refreshSyncLink();
+  syncLinkBtn.addEventListener("click", openSyncPanel);
+  sync.onChange = function(){ refreshSyncLink(); if(syncPanelRefresh) syncPanelRefresh(); };
 
   // ---------------------------------------------------------------------
   // router
@@ -802,10 +1190,18 @@
 
   window.addEventListener("hashchange", route);
 
-  loadAll().then(route).catch(function(err){
+  loadAll().then(route).then(function(){
+    if(ghToken()) syncNow().catch(function(){});
+  }).catch(function(err){
     app.innerHTML = '<div class="empty">Не удалось загрузить чек-листы.<br>' + escapeHtml(String(err)) + '</div>';
     console.error(err);
   });
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
 })();
 </script>
 </body>
