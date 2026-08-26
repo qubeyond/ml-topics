@@ -9,10 +9,10 @@
 - [ ]{id:indbias after:hyp} Inductive bias
 - [ ]{id:param after:hyp} Parametric models
 - [ ]{id:nonparam after:hyp} Non-parametric models
-- [ ]{r} Meta-learning (learning to learn)
-- [ ]{r} Online learning
-- [ ]{r} Multi-task learning
-- [ ]{r} Federated learning
+- [ ]{r id:meta after:hyp} Meta-learning (learning to learn)
+- [ ]{r id:online after:sgd} Online learning
+- [ ]{r id:multitask after:sup} Multi-task learning
+- [ ]{r id:federated after:sgd} Federated learning
 
 
 ## Fitting a Model: Minimizing Error
@@ -25,9 +25,9 @@
 - [ ]{id:localmin after:batchgd} Local minima
 - [ ]{id:globalmin after:localmin} Global minima
 - [ ]{id:lr after:batchgd} Learning rate
-- [ ]{r} Structural risk minimization
-- [ ]{r} Saddle points in high-dimensional optimization
-- [ ]{r} Convergence rates of gradient descent
+- [ ]{r id:srm after:erm} Structural risk minimization
+- [ ]{r id:saddle after:localmin} Saddle points in high-dimensional optimization
+- [ ]{r id:convrate after:lr} Convergence rates of gradient descent
 
 
 ## A Probabilistic View: Likelihood
@@ -35,9 +35,9 @@
 - [ ]{id:freq} Frequentist approach
 - [ ]{id:bayes} Bayesian approach
 - [ ]{id:mle after:freq,erm} Maximum Likelihood Estimation (MLE)
-- [ ]{r} Method of moments
-- [ ]{r} Exponential family and generalized linear models
-- [ ]{r} Fisher information and the Cramér-Rao bound
+- [ ]{r id:moments after:mle} Method of moments
+- [ ]{r id:expfam after:mle} Exponential family and generalized linear models
+- [ ]{r id:fisher after:mle} Fisher information and the Cramér-Rao bound
 
 
 ## Generalization
@@ -51,10 +51,10 @@
 - [ ]{id:irr after:bias,variance} Irreducible error
 - [ ]{id:vc after:gen} VC dimension
 - [ ]{id:nfl after:gen} No Free Lunch theorem
-- [ ]{r} PAC learning
-- [ ]{r} Rademacher complexity
-- [ ]{r} Double descent phenomenon
-- [ ]{r} Algorithmic stability
+- [ ]{r id:pac after:vc} PAC learning
+- [ ]{r id:radem after:vc} Rademacher complexity
+- [ ]{r id:doubledesc after:bias,variance} Double descent phenomenon
+- [ ]{r id:algstab after:gen} Algorithmic stability
 
 
 ## Loss Functions
@@ -68,9 +68,9 @@
 - [ ]{id:zeroone after:erm} 0/1 loss
 - [ ]{id:convex after:mse,hinge} Convex loss functions
 - [ ]{id:nonconvex after:convex} Non-convex loss functions
-- [ ]{r} Surrogate loss functions and consistency
-- [ ]{r} Bayes risk and the Bayes-optimal classifier
-- [ ]{r} Cost-sensitive / asymmetric loss functions
+- [ ]{r id:surrogate after:convex,zeroone} Surrogate loss functions and consistency
+- [ ]{r id:bayesrisk after:zeroone,bayes} Bayes risk and the Bayes-optimal classifier
+- [ ]{r id:costsens after:zeroone} Cost-sensitive / asymmetric loss functions
 
 
 ## Validation and Data Splitting
@@ -81,9 +81,9 @@
 - [ ]{id:loo after:kfold} Leave-one-out
 - [ ]{id:tssplit after:tvt} Time series split
 - [ ]{id:leak after:tvt} Data leakage
-- [ ]{r} Bootstrap estimation (.632 estimator)
-- [ ]{r} Conformal prediction
-- [ ]{r} Group / spatial cross-validation (non-i.i.d. data)
+- [ ]{r id:bootstrap632 after:kfold} Bootstrap estimation (.632 estimator)
+- [ ]{r id:conformal after:tvt} Conformal prediction
+- [ ]{r id:groupcv after:kfold} Group / spatial cross-validation (non-i.i.d. data)
 
 
 ## Regularization
@@ -93,18 +93,18 @@
 - [ ]{id:elastic after:l1,l2} Elastic Net
 - [ ]{id:earlystop after:overfit,lc} Early stopping
 - [ ]{id:map after:mle,bayes} Maximum A Posteriori (MAP)
-- [ ]{r} Dropout as approximate Bayesian inference
-- [ ]{r} Data augmentation as implicit regularization
-- [ ]{r} Implicit regularization in overparameterized models
+- [ ]{r id:dropout after:l2,bayes} Dropout as approximate Bayesian inference
+- [ ]{r id:dataaug after:overfit} Data augmentation as implicit regularization
+- [ ]{r id:implicitreg after:overfit} Implicit regularization in overparameterized models
 
 
 ## Quality Metrics
 
 - [ ]{id:metric after:gen} What a metric is and why different tasks need different metrics
 - [ ]{id:metricvsloss after:metric,erm} How metrics differ from loss functions
-- [ ]{r} Proper scoring rules
-- [ ]{r} Calibration of probabilistic predictions
-- [ ]{r} Multi-objective / Pareto-optimal model comparison
+- [ ]{r id:properscoring after:metric} Proper scoring rules
+- [ ]{r id:calibration after:metric} Calibration of probabilistic predictions
+- [ ]{r id:pareto after:metricvsloss} Multi-objective / Pareto-optimal model comparison
 
 
 ## Hyperparameter Tuning
@@ -113,6 +113,6 @@
 - [ ]{id:random after:kfold} Random search
 - [ ]{id:bayesopt after:random,bayes} Bayesian optimization
 - [ ]{id:nestedcv after:kfold,metric} Nested cross-validation
-- [ ]{r} Multi-fidelity optimization (Hyperband, successive halving)
-- [ ]{r} Population-based training
-- [ ]{r} AutoML / Neural Architecture Search (overview)
+- [ ]{r id:multifidelity after:bayesopt} Multi-fidelity optimization (Hyperband, successive halving)
+- [ ]{r id:pbt after:bayesopt} Population-based training
+- [ ]{r id:automl after:bayesopt} AutoML / Neural Architecture Search (overview)
