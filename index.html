@@ -134,7 +134,7 @@
   .card .meta{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;color:var(--muted);margin-bottom:7px;}
   .card .meta .pct{font-variant-numeric:tabular-nums;font-weight:600;color:var(--fg);}
   .card .counts{display:flex;align-items:center;gap:7px;}
-  .card .count-research{color:var(--research);}
+  .count-research{color:var(--research);font-variant-numeric:tabular-nums;}
   .bar{height:4px;border-radius:999px;background:var(--track);overflow:hidden;}
   .bar > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
   .card .bar-group{display:flex;gap:3px;}
@@ -368,7 +368,7 @@
   }
   .item input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent);}
   .item input[type=checkbox]:checked::before{transform:scale(1);}
-  .item .txt{font-size:14.5px;line-height:1.5;}
+  .item .txt{font-size:14.5px;line-height:1.5;flex:1 1 auto;min-width:0;overflow-wrap:anywhere;}
   .item .code{color:var(--faint);opacity:.65;font-variant-numeric:tabular-nums;margin-right:6px;font-size:9px;}
   .item .done-date{
     margin-left:auto;padding-left:10px;flex-shrink:0;
@@ -1291,6 +1291,7 @@
     var p = progressFor(catId);
     if(!progressEls || !cat) return;
     progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.totalPct + "%)";
+    if(progressEls.fracResearch) progressEls.fracResearch.textContent = p.totalResearch ? "+" + p.doneResearch + "/" + p.totalResearch + " R" : "";
     progressEls.segments.forEach(function(seg){
       var sp = progressForItems(catId, seg.items);
       seg.fill.style.width = Math.min(sp.pct, 100) + "%";
@@ -1578,7 +1579,9 @@
     var p = progressFor(catId);
     head.innerHTML =
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
-      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.totalPct + '%)</span></div></div>' +
+      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.totalPct + '%)</span>' +
+        (p.totalResearch ? ' <span class="count-research" id="fracResearch">+' + p.doneResearch + '/' + p.totalResearch + ' R</span>' : '') +
+      '</div></div>' +
       '<div class="head-actions">' +
         (hasGraph ?
           '<button class="icon-btn graph-btn" type="button" aria-label="' + escapeHtml(t().graphBtn) + '" title="' + escapeHtml(t().graphBtn) + '">' + ICON_GRAPH + '</button>'
@@ -1638,7 +1641,7 @@
     });
     app.appendChild(bar);
 
-    progressEls = { frac: head.querySelector("#frac"), segments: segments };
+    progressEls = { frac: head.querySelector("#frac"), fracResearch: head.querySelector("#fracResearch"), segments: segments };
 
     head.querySelector(".download-btn").addEventListener("click", function(){
       downloadText(cat.file || (catId + ".md"), cat.raw || "");
