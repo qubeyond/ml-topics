@@ -188,11 +188,15 @@
   .modal .btn-confirm{background:var(--accent);border:1px solid var(--accent);color:var(--bg);}
   .modal .btn-confirm:hover{opacity:.85;}
   .bar-segments{display:flex;gap:4px;height:6px;margin:18px 0 36px;}
+  .seg-group{display:flex;gap:2px;min-width:5px;}
   .bar-segments .seg{
-    position:relative;height:100%;min-width:5px;
+    position:relative;height:100%;min-width:4px;
     border-radius:999px;background:var(--track);overflow:hidden;
   }
   .bar-segments .seg > i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s ease;}
+  /* бонусный кусочек полосы за ресерч-темы: та же шкала, но приглушённая заливка */
+  .bar-segments .seg.seg-bonus{background:transparent;border:1px dashed var(--border);}
+  .bar-segments .seg.seg-bonus > i{background:var(--accent);opacity:.45;}
 
   .part{
     margin-bottom:22px;
@@ -248,6 +252,21 @@
   .item a{text-decoration:underline;text-decoration-color:var(--muted);text-underline-offset:3px;}
   .item a:hover{text-decoration-color:currentColor;}
 
+  /* ресерч-темы (необязательный "углублённый" уровень): пунктирный чекбокс + бейдж R */
+  .item.research input[type=checkbox]{border-style:dashed;}
+  .item.research input[type=checkbox]:checked{border-style:solid;}
+  .item .r-badge{
+    display:inline-block;
+    font-size:8.5px;font-weight:700;
+    color:var(--muted);
+    border:1px solid var(--border);
+    border-radius:3px;
+    padding:0 3px;
+    margin-right:6px;
+    line-height:1.4;
+    vertical-align:middle;
+  }
+
   .empty{color:var(--muted);padding:40px 0;text-align:center;}
 </style>
 </head>
@@ -284,7 +303,8 @@
       cancel: "Отмена",
       confirmBtn: "Сбросить",
       resetConfirm: function(title){ return 'Сбросить прогресс по разделу «' + title + '»?'; },
-      notFound: "Категория не найдена."
+      notFound: "Категория не найдена.",
+      researchHint: "Необязательная тема углублённого уровня — не входит в основной %, даёт бонус сверху"
     },
     en: {
       partWord: "Part",
@@ -295,7 +315,8 @@
       cancel: "Cancel",
       confirmBtn: "Reset",
       resetConfirm: function(title){ return "Reset progress for “" + title + "”?"; },
-      notFound: "Category not found."
+      notFound: "Category not found.",
+      researchHint: "Optional deep-dive topic — outside the main %, counts as a bonus on top"
     }
   };
   function t(){ return STRINGS[LANG]; }
@@ -425,9 +446,10 @@
         var sectionCode = curPart.code + "." + curPart.childN;
         curSection = { title: m[1].trim(), code: sectionCode, autoN: 0, items: [] };
         curPart.entries.push({ type:"section", section: curSection });
-      } else if((m = /^-\s+\[( |x|X)\]\s+(.*)$/.exec(l))){
+      } else if((m = /^-\s+\[( |x|X)\](\{r\})?\s+(.*)$/i.exec(l))){
         var defaultChecked = m[1].toLowerCase() === "x";
-        var text = m[2].trim();
+        var isResearch = !!m[2];
+        var text = m[3].trim();
         var code;
         if(curSection){
           curSection.autoN++;
@@ -437,7 +459,7 @@
           curPart.childN++;
           code = curPart.code + "." + curPart.childN;
         }
-        var item = { code: code, text: text, defaultChecked: defaultChecked };
+        var item = { code: code, text: text, defaultChecked: defaultChecked, research: isResearch };
         items.push(item);
         if(curSection){ curSection.items.push(item); }
         else { curPart.entries.push({ type:"item", item: item }); }
@@ -480,16 +502,36 @@
     });
   }
 
+  // Темы с тегом {r} — необязательный "ресерч"-уровень: не входят в
+  // знаменатель процента, но если пройдены — дают бонус сверху (общий %
+  // курса может уйти выше 100).
+  function splitItems(items){
+    var normal = [], research = [];
+    items.forEach(function(it){ (it.research ? research : normal).push(it); });
+    return { normal: normal, research: research };
+  }
+
+  function computeProgress(catId, items){
+    var s = splitItems(items);
+    var doneNormal = 0, doneResearch = 0;
+    s.normal.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) doneNormal++; });
+    s.research.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) doneResearch++; });
+    var total = s.normal.length;
+    // pct — чистый % обычных тем (0-100, ведёт ширину основного бара).
+    // totalPct — с бонусом за ресерч сверху, может уйти выше 100 (для текста).
+    var pct = total ? Math.round(doneNormal / total * 100) : 0;
+    var totalPct = total ? Math.round((doneNormal + doneResearch) / total * 100) : 0;
+    return {
+      done: doneNormal, total: total, pct: pct, totalPct: totalPct,
+      doneResearch: doneResearch, totalResearch: s.research.length,
+      researchPct: s.research.length ? Math.round(doneResearch / s.research.length * 100) : 0
+    };
+  }
+
   function progressFor(catId){
     var cat = CATALOG[catId];
-    if(!cat) return { done:0, total:0, pct:0 };
-    var total = cat.items.length;
-    var done = 0;
-    cat.items.forEach(function(it){
-      if(isChecked(catId, it.code, it.defaultChecked)) done++;
-    });
-    var pct = total ? Math.round(done / total * 100) : 0;
-    return { done: done, total: total, pct: pct };
+    if(!cat) return { done:0, total:0, pct:0, doneResearch:0, totalResearch:0, researchPct:0 };
+    return computeProgress(catId, cat.items);
   }
 
   function partItems(part){
@@ -502,9 +544,7 @@
   }
 
   function progressForItems(catId, items){
-    var total = items.length, done = 0;
-    items.forEach(function(it){ if(isChecked(catId, it.code, it.defaultChecked)) done++; });
-    return { done: done, total: total, pct: total ? Math.round(done / total * 100) : 0 };
+    return computeProgress(catId, items);
   }
 
   // ---------------------------------------------------------------------
@@ -530,8 +570,8 @@
       card.innerHTML =
         '<h2>' + escapeHtml(cat.title) + '</h2>' +
         '<div>' +
-          '<div class="meta"><span>' + p.done + ' / ' + p.total + '</span><span class="pct">' + p.pct + '%</span></div>' +
-          '<div class="bar"><i style="width:' + p.pct + '%"></i></div>' +
+          '<div class="meta"><span>' + p.done + ' / ' + p.total + '</span><span class="pct">' + p.totalPct + '%</span></div>' +
+          '<div class="bar"><i style="width:' + Math.min(p.pct, 100) + '%"></i></div>' +
         '</div>';
       function go(){ location.hash = "#/" + id; }
       card.addEventListener("click", go);
@@ -546,17 +586,20 @@
 
   function renderItem(catId, item){
     var row = document.createElement("label");
-    row.className = "item";
+    row.className = "item" + (item.research ? " research" : "");
     var checked = isChecked(catId, item.code, item.defaultChecked);
     if(checked) row.classList.add("checked");
 
     var cb = document.createElement("input");
     cb.type = "checkbox";
     cb.checked = checked;
+    if(item.research) cb.title = t().researchHint;
 
     var label = document.createElement("span");
     label.className = "txt label";
-    label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' + inlineMd(item.text);
+    label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' +
+      (item.research ? '<span class="r-badge" title="' + escapeHtml(t().researchHint) + '">R</span>' : '') +
+      inlineMd(item.text);
 
     row.appendChild(cb);
     row.appendChild(label);
@@ -576,10 +619,11 @@
     var cat = CATALOG[catId];
     var p = progressFor(catId);
     if(!progressEls || !cat) return;
-    progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.pct + "%)";
+    progressEls.frac.textContent = p.done + " / " + p.total + " (" + p.totalPct + "%)";
     progressEls.segments.forEach(function(seg){
       var sp = progressForItems(catId, seg.items);
-      seg.fill.style.width = sp.pct + "%";
+      seg.fill.style.width = Math.min(sp.pct, 100) + "%";
+      if(seg.bonusFill) seg.bonusFill.style.width = sp.researchPct + "%";
     });
   }
 
@@ -597,7 +641,7 @@
     var p = progressFor(catId);
     head.innerHTML =
       '<div><h1>' + escapeHtml(cat.title) + '</h1>' +
-      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.pct + '%)</span></div></div>' +
+      '<div class="detail-progress"><span id="frac">' + p.done + ' / ' + p.total + ' (' + p.totalPct + '%)</span></div></div>' +
       '<div class="head-actions">' +
         '<button class="icon-btn download-btn" type="button" aria-label="' + escapeHtml(t().download) + '" title="' + escapeHtml(t().download) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 11 12 16 17 11"/><path d="M4 19h16"/></svg>' +
@@ -615,15 +659,35 @@
       var items = partItems(part);
       if(!items.length) return;
       var sp = progressForItems(catId, items);
+
+      var group = document.createElement("div");
+      group.className = "seg-group";
+      group.style.flex = (sp.total + sp.totalResearch) + " 1 0";
+
       var seg = document.createElement("div");
       seg.className = "seg";
-      seg.style.flex = items.length + " 1 0";
-      seg.title = (part.title || cat.title) + ": " + sp.done + " / " + sp.total;
+      seg.style.flex = sp.total + " 1 0";
+      seg.title = (part.title || cat.title) + ": " + sp.done + " / " + sp.total +
+        (sp.totalResearch ? " (+" + sp.doneResearch + "/" + sp.totalResearch + " R)" : "");
       var fill = document.createElement("i");
-      fill.style.width = sp.pct + "%";
+      fill.style.width = Math.min(sp.pct, 100) + "%";
       seg.appendChild(fill);
-      bar.appendChild(seg);
-      segments.push({ items: items, fill: fill });
+      group.appendChild(seg);
+
+      var bonusFill = null;
+      if(sp.totalResearch){
+        var bonusSeg = document.createElement("div");
+        bonusSeg.className = "seg seg-bonus";
+        bonusSeg.style.flex = sp.totalResearch + " 1 0";
+        bonusSeg.title = seg.title;
+        bonusFill = document.createElement("i");
+        bonusFill.style.width = sp.researchPct + "%";
+        bonusSeg.appendChild(bonusFill);
+        group.appendChild(bonusSeg);
+      }
+
+      bar.appendChild(group);
+      segments.push({ items: items, fill: fill, bonusFill: bonusFill });
     });
     app.appendChild(bar);
 

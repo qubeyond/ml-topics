@@ -1,9 +1,9 @@
 [
   {
-    "id": "classic-ml",
-    "file": "classic-ml.md",
-    "title": "Классический ML",
-    "title_en": "Classical ML"
+    "id": "ml-base",
+    "file": "ml-base.md",
+    "title": "ML-база",
+    "title_en": "ML Base"
   },
   {
     "id": "deep-learning",
