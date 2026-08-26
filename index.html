@@ -376,8 +376,9 @@
   }
   .item .done-date:empty{display:none;}
   .item.checked .label{color:var(--faint);text-decoration:line-through;text-decoration-color:var(--border);}
-  .item a{text-decoration:underline;text-decoration-color:var(--muted);text-underline-offset:3px;}
+  .item a{font-weight:600;text-decoration:underline;text-decoration-color:var(--muted);text-underline-offset:3px;}
   .item a:hover{text-decoration-color:currentColor;}
+  .item a::after{content:"↗";display:inline-block;margin-left:2px;font-size:.8em;font-weight:400;transform:translateY(-1px);}
 
   /* тач-устройства: чекбокс и сама строка пункта побольше, легче попасть пальцем */
   @media (pointer:coarse){
@@ -1256,6 +1257,12 @@
     var label = document.createElement("span");
     label.className = "txt label";
     label.innerHTML = '<span class="code">' + escapeHtml(item.code) + '</span>' + inlineMd(item.text);
+    // ссылка вложена в <label> (он же чекбокс) — без stopPropagation клик по
+    // ссылке ещё и тогглит чекбокс, а на тач-устройствах это вообще ломает
+    // переход по ссылке (нативная активация лейбла "перехватывает" тап)
+    label.querySelectorAll("a").forEach(function(a){
+      a.addEventListener("click", function(e){ e.stopPropagation(); });
+    });
 
     var dateEl = document.createElement("span");
     dateEl.className = "done-date";
