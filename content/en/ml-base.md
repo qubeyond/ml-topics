@@ -10,20 +10,9 @@
 - [ ] Parametric models
 - [ ] Non-parametric models
 - [ ]{r} Meta-learning (learning to learn)
-
-
-## Loss Functions
-
-- [ ] MSE
-- [ ] MAE
-- [ ] Huber loss
-- [ ] Cross-entropy
-- [ ] Hinge loss
-- [ ] Log-loss
-- [ ] 0/1 loss
-- [ ] Convex loss functions
-- [ ] Non-convex loss functions
-- [ ]{r} Surrogate loss functions and consistency
+- [ ]{r} Online learning
+- [ ]{r} Multi-task learning
+- [ ]{r} Federated learning
 
 
 ## Fitting a Model: Minimizing Error
@@ -37,6 +26,8 @@
 - [ ] Global minima
 - [ ] Learning rate
 - [ ]{r} Structural risk minimization
+- [ ]{r} Saddle points in high-dimensional optimization
+- [ ]{r} Convergence rates of gradient descent
 
 
 ## A Probabilistic View: Likelihood
@@ -44,6 +35,8 @@
 - [ ] Frequentist approach
 - [ ] Bayesian approach
 - [ ] Maximum Likelihood Estimation (MLE)
+- [ ]{r} Method of moments
+- [ ]{r} Exponential family and generalized linear models
 - [ ]{r} Fisher information and the Cramér-Rao bound
 
 
@@ -59,6 +52,25 @@
 - [ ] VC dimension
 - [ ] No Free Lunch theorem
 - [ ]{r} PAC learning
+- [ ]{r} Rademacher complexity
+- [ ]{r} Double descent phenomenon
+- [ ]{r} Algorithmic stability
+
+
+## Loss Functions
+
+- [ ] MSE
+- [ ] MAE
+- [ ] Huber loss
+- [ ] Cross-entropy
+- [ ] Hinge loss
+- [ ] Log-loss
+- [ ] 0/1 loss
+- [ ] Convex loss functions
+- [ ] Non-convex loss functions
+- [ ]{r} Surrogate loss functions and consistency
+- [ ]{r} Bayes risk and the Bayes-optimal classifier
+- [ ]{r} Cost-sensitive / asymmetric loss functions
 
 
 ## Validation and Data Splitting
@@ -70,6 +82,8 @@
 - [ ] Time series split
 - [ ] Data leakage
 - [ ]{r} Bootstrap estimation (.632 estimator)
+- [ ]{r} Conformal prediction
+- [ ]{r} Group / spatial cross-validation (non-i.i.d. data)
 
 
 ## Regularization
@@ -79,6 +93,8 @@
 - [ ] Elastic Net
 - [ ] Early stopping
 - [ ] Maximum A Posteriori (MAP)
+- [ ]{r} Dropout as approximate Bayesian inference
+- [ ]{r} Data augmentation as implicit regularization
 - [ ]{r} Implicit regularization in overparameterized models
 
 
@@ -87,6 +103,8 @@
 - [ ] What a metric is and why different tasks need different metrics
 - [ ] How metrics differ from loss functions
 - [ ]{r} Proper scoring rules
+- [ ]{r} Calibration of probabilistic predictions
+- [ ]{r} Multi-objective / Pareto-optimal model comparison
 
 
 ## Hyperparameter Tuning
@@ -96,3 +114,5 @@
 - [ ] Bayesian optimization
 - [ ] Nested cross-validation
 - [ ]{r} Multi-fidelity optimization (Hyperband, successive halving)
+- [ ]{r} Population-based training
+- [ ]{r} AutoML / Neural Architecture Search (overview)
