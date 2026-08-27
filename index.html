@@ -191,6 +191,11 @@
   /* на мобильных экранах у браузера есть свой back — наша кнопка только мешает и налезает на карточки */
   @media (max-width:640px){
     #backBtn{display:none !important;}
+    /* на мобильном настройки — не прибиты к экрану: #scrollArea (position:fixed)
+       становится системой координат для position:absolute, так что кнопка
+       листается вместе с контентом и пропадает при скролле вниз, а не
+       висит поверх всего постоянно */
+    #settingsBtn{position:absolute;}
   }
 
   .site-footer{
@@ -206,9 +211,11 @@
   }
   .site-footer a{transition:color .15s ease;}
   .site-footer a:hover{color:var(--fg);}
-  /* на мобильных переносим футер наверх по центру и показываем только на главной */
+  /* на мобильных переносим футер наверх по центру, показываем только на
+     главной, и он больше не прибит к экрану — см. комментарий у #settingsBtn */
   @media (max-width:640px){
     .site-footer{
+      position:absolute;
       left:50%;
       right:auto;
       transform:translateX(-50%) translateZ(0);
@@ -459,6 +466,10 @@
   }
   .graph-node-dot.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));border-color:transparent;}
   .graph-node-dot.dragging{transform:scale(1.4);}
+  /* узел-часть (агрегат многих тем) — крупнее и залит акцентным цветом,
+     чтобы визуально отличаться от обычных узлов-тем; не кликабелен, только драг */
+  .graph-node-dot.part-node{background:var(--accent);border-color:var(--accent);cursor:grab;box-shadow:var(--shadow-2);}
+  .graph-node-label.part-node{font-size:13px;font-weight:700;color:var(--fg);cursor:grab;}
   .graph-node-label{
     position:absolute;
     transform:translate(-50%, -100%);
@@ -544,6 +555,16 @@
   }
   .graph-parts-opt:hover{background:var(--track);}
   .graph-parts-opt input{flex-shrink:0;}
+  .graph-parts-levels{display:flex;gap:6px;padding:2px 2px 8px;}
+  .graph-level-opt{
+    flex:1;font-family:inherit;font-size:12px;font-weight:700;
+    padding:7px 0;border-radius:8px;border:1px solid var(--border);
+    background:none;color:var(--muted);cursor:pointer;
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .graph-level-opt.active{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+  .graph-level-opt:not(.active):hover{border-color:var(--fg);color:var(--fg);}
+  .graph-parts-divider{height:1px;background:var(--border);margin:0 2px 8px;}
   /* фон "в точечку", как разлиновка на бумаге для графов — двигается вместе с камерой (JS) */
   .graph-overlay-body{
     flex:1;position:relative;overflow:hidden;cursor:grab;
@@ -641,7 +662,9 @@
       graphBtn: "Граф зависимостей",
       graphMiniLabel: "Граф",
       graphEmpty: "Для этого курса граф ещё не размечен.",
-      graphPartsBtn: "Показать только выбранные части"
+      graphPartsBtn: "Показать только выбранные части",
+      graphLevelParts: "Части",
+      graphLevelItems: "Темы"
     },
     en: {
       partWord: "Part",
@@ -682,7 +705,9 @@
       graphBtn: "Dependency graph",
       graphMiniLabel: "Graph",
       graphEmpty: "No graph annotated for this course yet.",
-      graphPartsBtn: "Show only selected parts"
+      graphPartsBtn: "Show only selected parts",
+      graphLevelParts: "Parts",
+      graphLevelItems: "Topics"
     }
   };
   function t(){ return STRINGS[LANG]; }
@@ -1654,16 +1679,9 @@
     }
     applyCamera();
 
-    var cam = bindGraphCamera(container, camera, applyCamera, { panExclude: ".graph-node" });
-
-    Object.keys(nodeEls).forEach(function(code){
-      nodeEls[code].addEventListener("click", function(e){
-        e.stopPropagation();
-        var next = !isChecked(catId, code);
-        setChecked(catId, code, next);
-        nodeEls[code].classList.toggle("checked", next);
-      });
-    });
+    // мини-превью — чистый обзор: точки не кликабельны (не отмечают темы),
+    // только пан/зум для разглядывания; отмечать темы — в полноэкранном графе
+    var cam = bindGraphCamera(container, camera, applyCamera, {});
 
     return { stop: function(){ sim.stop(); }, didDrag: cam.didDrag };
   }
@@ -1672,36 +1690,71 @@
   // зажатой мышкой + зум колёсиком) вместо скролла контейнера.
   // partIds: если задан (набор кодов частей "I","II",...) — граф строится
   // только по узлам/рёбрам этих частей (для фильтра по частям в шапке оверлея)
-  function mountInteractiveGraph(container, catId, partIds){
-    var graph = CATALOG[catId].graph;
-    var w = container.clientWidth || 800, h = container.clientHeight || 600;
-    var nodesSrc = graph.nodes;
-    var edgesSrc = graph.edges;
-    if(partIds){
-      var allowedCodes = {};
-      nodesSrc = nodesSrc.filter(function(n){
-        var partCode = n.code.split(".")[0];
-        var keep = partIds.indexOf(partCode) !== -1;
-        if(keep) allowedCodes[n.code] = true;
-        return keep;
-      });
-      edgesSrc = edgesSrc.filter(function(e){ return allowedCodes[e.source] && allowedCodes[e.target]; });
-    }
-    var levels = computeGraphLevels(nodesSrc, edgesSrc);
-    var simNodes = nodesSrc.map(function(n){
-      return { code: n.code, text: n.text, research: !!n.research, practice: !!n.practice, level: levels[n.code] || 0 };
+  // строит граф на уровне частей: узлы — части курса, ребро часть->часть
+  // если хотя бы один пункт первой ссылается (after:) на пункт второй
+  function buildPartLevelData(cat, partIds){
+    var parts = cat.parts.filter(function(p){ return p.title; });
+    if(partIds) parts = parts.filter(function(p){ return partIds.indexOf(p.code) !== -1; });
+    var allowed = {};
+    parts.forEach(function(p){ allowed[p.code] = true; });
+    var edgeSet = {}, edges = [];
+    cat.graph.edges.forEach(function(e){
+      var srcPart = e.source.split(".")[0], tgtPart = e.target.split(".")[0];
+      if(srcPart === tgtPart || !allowed[srcPart] || !allowed[tgtPart]) return;
+      var key = srcPart + ">" + tgtPart;
+      if(edgeSet[key]) return;
+      edgeSet[key] = true;
+      edges.push({ source: srcPart, target: tgtPart });
     });
+    return { parts: parts, edges: edges };
+  }
+
+  // level: "parts" (по умолчанию, для производительности и читаемости на
+  // больших курсах) — узлы это части курса; "items" — обычные узлы-темы
+  function mountInteractiveGraph(container, catId, partIds, level){
+    var isPartLevel = level !== "items";
+    var cat = CATALOG[catId];
+    var graph = cat.graph;
+    var w = container.clientWidth || 800, h = container.clientHeight || 600;
+
+    var simNodes, simEdgesRaw;
+    if(isPartLevel){
+      var partData = buildPartLevelData(cat, partIds);
+      var partLevels = computeGraphLevels(partData.parts.map(function(p){ return { code: p.code }; }), partData.edges);
+      simNodes = partData.parts.map(function(p){
+        return { code: p.code, text: p.code + ". " + p.title, research: false, practice: false, isPart: true, level: partLevels[p.code] || 0 };
+      });
+      simEdgesRaw = partData.edges;
+    } else {
+      var nodesSrc = graph.nodes, edgesSrc = graph.edges;
+      if(partIds){
+        var allowedCodes = {};
+        nodesSrc = nodesSrc.filter(function(n){
+          var partCode = n.code.split(".")[0];
+          var keep = partIds.indexOf(partCode) !== -1;
+          if(keep) allowedCodes[n.code] = true;
+          return keep;
+        });
+        edgesSrc = edgesSrc.filter(function(e){ return allowedCodes[e.source] && allowedCodes[e.target]; });
+      }
+      var itemLevels = computeGraphLevels(nodesSrc, edgesSrc);
+      simNodes = nodesSrc.map(function(n){
+        return { code: n.code, text: n.text, research: !!n.research, practice: !!n.practice, isPart: false, level: itemLevels[n.code] || 0 };
+      });
+      simEdgesRaw = edgesSrc;
+    }
+
     var byCode = {};
     simNodes.forEach(function(n){ byCode[n.code] = n; });
     // d3.forceLink() мутирует .source/.target из строк-кодов в ссылки на
     // узлы прямо на первом тике — держим исходные коды отдельно для paint()
-    var simEdges = edgesSrc
+    var simEdges = simEdgesRaw
       .filter(function(e){ return byCode[e.source] && byCode[e.target]; })
       .map(function(e){ return { source: e.source, target: e.target, sourceCode: e.source, targetCode: e.target }; });
     var degree = degreeMap(simEdges);
 
-    var DOT = 12;
-    var levelGap = 90;
+    var DOT = isPartLevel ? 24 : 12;
+    var levelGap = isPartLevel ? 140 : 90;
 
     container.innerHTML = "";
     var canvas = document.createElement("div");
@@ -1731,7 +1784,7 @@
     simNodes.forEach(function(n){
       n.x = (Math.random() - 0.5) * Math.min(w, 600);
       n.y = n.level * levelGap + (Math.random() - 0.5) * 8;
-      var cls = tagClass(n) + (isChecked(catId, n.code) ? " checked" : "");
+      var cls = (n.isPart ? " part-node" : tagClass(n) + (isChecked(catId, n.code) ? " checked" : ""));
       var dot = document.createElement("div");
       dot.className = "graph-node-dot" + cls;
       dot.style.width = DOT + "px";
@@ -1845,8 +1898,10 @@
         n.fx = null; n.fy = null;
         highlight(false);
       }
+      // узлы-части не отмечаются кликом (это агрегат многих тем, не один пункт)
       function onClick(e){
         if(moved){ moved = false; return; }
+        if(byCode[code].isPart) return;
         e.stopPropagation();
         var next = !isChecked(catId, code);
         setChecked(catId, code, next);
@@ -1866,18 +1921,30 @@
     return { stop: function(){ sim.stop(); } };
   }
 
-  var miniGraphEl = null, miniGraphSim = null;
+  var miniGraphEl = null, miniGraphSim = null, miniGraphResizeHandler = null;
   function removeMiniGraph(){
     if(miniGraphSim){ miniGraphSim.stop(); miniGraphSim = null; }
+    if(miniGraphResizeHandler){ window.removeEventListener("resize", miniGraphResizeHandler); miniGraphResizeHandler = null; }
     if(miniGraphEl){ miniGraphEl.remove(); miniGraphEl = null; }
   }
 
   function mountMiniGraph(catId){
     var miniWrap = document.createElement("div");
     miniWrap.className = "graph-mini";
-    // верхушка мини-графа вровень с верхушкой первого блока темы на странице
-    var firstPart = document.querySelector(".part");
-    if(firstPart) miniWrap.style.top = firstPart.getBoundingClientRect().top + "px";
+    // верхушка мини-графа вровень с верхушкой первого блока темы на странице.
+    // Клэмпим к 0 и на всякий случай перемеряем через кадр (шрифт может
+    // догрузиться и сдвинуть раскладку) — иначе при "нехорошем" моменте
+    // измерения (например, старая позиция скролла ещё не осела) верхушка
+    // могла уйти в минус и увести панель за пределы экрана.
+    function repositionMini(){
+      var firstPart = document.querySelector(".part");
+      if(firstPart) miniWrap.style.top = Math.max(0, firstPart.getBoundingClientRect().top) + "px";
+    }
+    repositionMini();
+    requestAnimationFrame(repositionMini);
+    setTimeout(repositionMini, 200);
+    miniGraphResizeHandler = repositionMini;
+    window.addEventListener("resize", repositionMini);
     miniWrap.innerHTML =
       '<div class="graph-mini-label">' + ICON_GRAPH + escapeHtml(t().graphMiniLabel) + '</div>' +
       '<button type="button" class="graph-mini-expand" aria-label="' + escapeHtml(t().graphBtn) + '" title="' + escapeHtml(t().graphBtn) + '">' + ICON_EXPAND + '</button>';
@@ -1906,6 +1973,7 @@
 
     var partOptions = cat.parts.filter(function(p){ return p.title; });
     var selectedParts = null; // null = все части
+    var level = "parts"; // по умолчанию — граф частей (компактнее и быстрее)
 
     var backdrop = document.createElement("div");
     backdrop.className = "graph-overlay-backdrop";
@@ -1914,19 +1982,22 @@
         '<div class="graph-overlay-head">' +
           '<h3>' + escapeHtml(cat.title) + ' — ' + escapeHtml(t().graphBtn) + '</h3>' +
           '<div class="graph-overlay-head-actions">' +
-            (partOptions.length > 1 ?
-              '<button type="button" class="icon-btn graph-parts-btn" aria-label="' + escapeHtml(t().graphPartsBtn) + '" title="' + escapeHtml(t().graphPartsBtn) + '">' + ICON_FILTER + '</button>'
-              : '') +
+            '<button type="button" class="icon-btn graph-parts-btn" aria-label="' + escapeHtml(t().graphPartsBtn) + '" title="' + escapeHtml(t().graphPartsBtn) + '">' + ICON_FILTER + '</button>' +
             '<button type="button" class="icon-btn graph-overlay-close" aria-label="' + escapeHtml(t().syncClose) + '">' + ICON_CLOSE + '</button>' +
           '</div>' +
-        '</div>' +
-        (partOptions.length > 1 ?
           '<div class="graph-parts-popover" hidden>' +
-            partOptions.map(function(p){
-              return '<label class="graph-parts-opt"><input type="checkbox" checked value="' + escapeHtml(p.code) + '">' + escapeHtml(p.code) + '. ' + escapeHtml(p.title) + '</label>';
-            }).join("") +
-          '</div>'
-          : '') +
+            '<div class="graph-parts-levels">' +
+              '<button type="button" class="graph-level-opt active" data-level="parts">' + escapeHtml(t().graphLevelParts) + '</button>' +
+              '<button type="button" class="graph-level-opt" data-level="items">' + escapeHtml(t().graphLevelItems) + '</button>' +
+            '</div>' +
+            (partOptions.length > 1 ?
+              '<div class="graph-parts-divider"></div>' +
+              partOptions.map(function(p){
+                return '<label class="graph-parts-opt"><input type="checkbox" checked value="' + escapeHtml(p.code) + '">' + escapeHtml(p.code) + '. ' + escapeHtml(p.title) + '</label>';
+              }).join("")
+              : '') +
+          '</div>' +
+        '</div>' +
         '<div class="graph-overlay-body"></div>' +
       '</div>';
     document.body.appendChild(backdrop);
@@ -1960,7 +2031,7 @@
 
     function remount(){
       if(sim) sim.stop();
-      sim = mountInteractiveGraph(body, catId, selectedParts);
+      sim = mountInteractiveGraph(body, catId, selectedParts, level);
     }
 
     if(partsBtn){
@@ -1968,8 +2039,20 @@
         e.stopPropagation();
         popover.hidden = !popover.hidden;
       });
-      popover.addEventListener("change", function(){
-        var boxes = Array.prototype.slice.call(popover.querySelectorAll("input[type=checkbox]"));
+      popover.addEventListener("click", function(e){
+        var levelBtn = e.target.closest(".graph-level-opt");
+        if(!levelBtn) return;
+        var newLevel = levelBtn.getAttribute("data-level");
+        if(newLevel === level) return;
+        level = newLevel;
+        popover.querySelectorAll(".graph-level-opt").forEach(function(b){
+          b.classList.toggle("active", b === levelBtn);
+        });
+        remount();
+      });
+      popover.addEventListener("change", function(e){
+        if(!e.target.closest(".graph-parts-opt")) return;
+        var boxes = Array.prototype.slice.call(popover.querySelectorAll(".graph-parts-opt input[type=checkbox]"));
         var checked = boxes.filter(function(b){ return b.checked; }).map(function(b){ return b.value; });
         selectedParts = checked.length === boxes.length ? null : checked;
         remount();
@@ -2153,7 +2236,11 @@
   settingsBtn.type = "button";
   settingsBtn.innerHTML = ICON_GEAR;
   settingsBtn.addEventListener("click", openSettingsPanel);
-  document.body.appendChild(settingsBtn);
+  // на десктопе — fixed к вьюпорту (как раньше); на мобильном (CSS ниже)
+  // становится position:absolute — родитель #scrollArea задаёт систему
+  // координат, поэтому кнопка НЕ прибита к экрану, а листается вместе с
+  // контентом и пропадает при скролле, как обычная верхняя часть страницы
+  scrollArea.appendChild(settingsBtn);
 
   function refreshChrome(){
     backBtn.setAttribute("aria-label", t().back);
@@ -2169,7 +2256,7 @@
   var footer = document.createElement("div");
   footer.className = "site-footer";
   footer.innerHTML = '<a href="https://github.com/qubeyond" target="_blank" rel="noopener">github.com/qubeyond</a>';
-  document.body.appendChild(footer);
+  scrollArea.appendChild(footer);
 
   sync.onChange = function(){ if(syncPanelRefresh) syncPanelRefresh(); };
 
