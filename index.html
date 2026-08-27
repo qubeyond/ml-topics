@@ -549,6 +549,21 @@
     max-height:min(340px, 60vh);overflow-y:auto;
     width:min(280px, 80vw);
   }
+  /* без этого [hidden] проигрывает display:flex выше (одинаковая специфичность,
+     но авторский CSS перебивает UA-стиль) — попап был виден всегда */
+  .graph-parts-popover[hidden]{display:none;}
+  /* тонкий минималистичный скролл вместо системного — на попапе фильтра и на
+     самой странице, чтобы не бросался в глаза жирный браузерный скроллбар */
+  #scrollArea, .graph-parts-popover{
+    scrollbar-width:thin;
+    scrollbar-color:var(--faint) transparent;
+  }
+  #scrollArea::-webkit-scrollbar, .graph-parts-popover::-webkit-scrollbar{width:6px;height:6px;}
+  #scrollArea::-webkit-scrollbar-track, .graph-parts-popover::-webkit-scrollbar-track{background:transparent;}
+  #scrollArea::-webkit-scrollbar-thumb, .graph-parts-popover::-webkit-scrollbar-thumb{
+    background:var(--faint);border-radius:999px;border:1.5px solid transparent;background-clip:padding-box;
+  }
+  #scrollArea::-webkit-scrollbar-thumb:hover, .graph-parts-popover::-webkit-scrollbar-thumb:hover{background:var(--muted);}
   .graph-parts-opt{
     display:flex;align-items:center;gap:8px;
     padding:6px 8px;border-radius:8px;font-size:12.5px;cursor:pointer;
@@ -1838,7 +1853,10 @@
       var ys = simNodes.map(function(n){ return n.y; });
       var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
       var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
-      var gw = Math.max(maxX - minX, 80) + 120, gh = Math.max(maxY - minY, 80) + 120;
+      // у узлов-частей крупные точки и длинные подписи — им нужен запас побольше,
+      // иначе камера садится впритык и подписи обрезаются по краю окна
+      var margin = isPartLevel ? 260 : 120;
+      var gw = Math.max(maxX - minX, 80) + margin, gh = Math.max(maxY - minY, 80) + margin;
       var kFit = Math.min(w / gw, h / gh);
       camera.kMin = Math.min(kFit, 1);
       camera.kMax = Math.max(kFit * 4, 1.6);
