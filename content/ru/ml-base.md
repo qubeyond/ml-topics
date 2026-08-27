@@ -7,8 +7,7 @@
 - [ ]{id:rl} Обучение с подкреплением
 - [ ]{id:hyp} Пространство гипотез
 - [ ]{id:indbias after:hyp} Индуктивное смещение
-- [ ]{id:param after:hyp} Параметрические модели
-- [ ]{id:nonparam after:hyp} Непараметрические модели
+- [ ]{id:paramtype after:hyp} Параметрические и непараметрические модели
 - [ ]{r id:meta after:hyp} Meta-learning (обучение обучаться)
 - [ ]{r id:online after:sgd} Online-обучение
 - [ ]{r id:multitask after:sup} Multi-task обучение
@@ -22,11 +21,10 @@
 - [ ]{id:batchgd after:erm} Batch градиентный спуск
 - [ ]{id:sgd after:batchgd} Stochastic градиентный спуск
 - [ ]{id:minibatchgd after:sgd} Mini-batch градиентный спуск
-- [ ]{id:localmin after:batchgd} Локальные минимумы
-- [ ]{id:globalmin after:localmin} Глобальные минимумы
+- [ ]{id:minima after:batchgd} Локальные и глобальные минимумы
 - [ ]{id:lr after:batchgd} Learning rate
 - [ ]{r id:srm after:erm} Structural risk minimization
-- [ ]{r id:saddle after:localmin} Седловые точки в многомерной оптимизации
+- [ ]{r id:saddle after:minima} Седловые точки в многомерной оптимизации
 - [ ]{r id:convrate after:lr} Скорость сходимости градиентного спуска
 
 
@@ -45,30 +43,65 @@
 - [ ]{id:gen after:erm} Generalization
 - [ ]{id:overfit after:gen} Overfitting
 - [ ]{id:underfit after:gen} Underfitting
-- [ ]{id:bias after:overfit,underfit} Смещение (bias)
-- [ ]{id:variance after:overfit,underfit} Разброс (variance)
-- [ ]{id:lc after:bias,variance} Learning curves
-- [ ]{id:irr after:bias,variance} Irreducible error
+- [ ]{id:biasvar after:overfit,underfit} Bias-Variance Tradeoff (смещение, разброс, неустранимая ошибка)
+- [ ]{id:lc after:biasvar} Learning curves
 - [ ]{id:vc after:gen} VC-размерность
 - [ ]{id:nfl after:gen} No Free Lunch theorem
 - [ ]{r id:pac after:vc} PAC learning
 - [ ]{r id:radem after:vc} Сложность Радемахера
-- [ ]{r id:doubledesc after:bias,variance} Феномен double descent
+- [ ]{r id:doubledesc after:biasvar} Феномен double descent
 - [ ]{r id:algstab after:gen} Алгоритмическая устойчивость
+
+
+## Типы задач и метрики качества
+
+### Основы
+
+- [ ]{id:metric after:gen} Что такое метрика и зачем нужны разные метрики под разные задачи
+- [ ]{id:metricvsloss after:metric,erm} Чем метрика отличается от функции потерь
+- [ ]{r id:pareto after:metricvsloss} Многокритериальное / Парето-оптимальное сравнение моделей
+
+### Типы задач в машинном обучении
+
+- [ ]{id:taskclass after:sup} Классификация (бинарная, многоклассовая, многометочная)
+- [ ]{id:taskreg after:sup} Регрессия
+- [ ]{r id:taskrank after:sup} Ранжирование
+- [ ]{r id:taskcluster after:unsup} Кластеризация
+
+### Метрики классификации
+
+- [ ]{id:accuracy after:taskclass,metric} Accuracy
+- [ ]{id:precrecall after:taskclass,metric} Precision и Recall
+- [ ]{id:f1 after:precrecall} F1-score
+- [ ]{id:rocauc after:taskclass,metric} ROC-AUC
+- [ ]{id:confmatrix after:taskclass} Confusion matrix
+- [ ]{r id:prauc after:rocauc} PR-AUC
+- [ ]{r id:properscoring after:rocauc} Proper scoring rules
+- [ ]{r id:calibration after:rocauc} Калибровка вероятностных предсказаний
+
+### Метрики регрессии
+
+- [ ]{id:regmetrics after:taskreg,metric} MAE, MSE, RMSE как метрики качества
+- [ ]{id:r2 after:regmetrics} R² (коэффициент детерминации)
+- [ ]{r id:mape after:regmetrics} MAPE
+
+### Метрики ранжирования и кластеризации
+
+- [ ]{r id:rankmetrics after:taskrank} NDCG, MRR
+- [ ]{r id:clustermetrics after:taskcluster} Silhouette score, Adjusted Rand Index
 
 
 ## Функции потерь
 
-- [ ]{id:mse after:erm} MSE
-- [ ]{id:mae after:erm} MAE
+- [ ]{id:mse after:erm,regmetrics} MSE
+- [ ]{id:mae after:erm,regmetrics} MAE
 - [ ]{id:huber after:mse,mae} Huber loss
-- [ ]{id:ce after:mle} Cross-entropy
-- [ ]{id:hinge after:erm} Hinge loss
+- [ ]{id:ce after:mle,rocauc} Cross-entropy
+- [ ]{id:hinge after:erm,accuracy} Hinge loss
 - [ ]{id:logloss after:ce} Log-loss
-- [ ]{id:zeroone after:erm} 0/1-loss
-- [ ]{id:convex after:mse,hinge} Выпуклые функции потерь
-- [ ]{id:nonconvex after:convex} Невыпуклые функции потерь
-- [ ]{r id:surrogate after:convex,zeroone} Суррогатные функции потерь и их согласованность
+- [ ]{id:zeroone after:erm,accuracy} 0/1-loss
+- [ ]{id:convexity after:mse,hinge} Выпуклые и невыпуклые функции потерь
+- [ ]{r id:surrogate after:convexity,zeroone} Суррогатные функции потерь и их согласованность
 - [ ]{r id:bayesrisk after:zeroone,bayes} Байесовский риск и байес-оптимальный классификатор
 - [ ]{r id:costsens after:zeroone} Cost-sensitive / асимметричные функции потерь
 
@@ -96,15 +129,6 @@
 - [ ]{r id:dropout after:l2,bayes} Dropout как приближённый байесовский вывод
 - [ ]{r id:dataaug after:overfit} Аугментация данных как неявная регуляризация
 - [ ]{r id:implicitreg after:overfit} Имплицитная регуляризация в переобученных моделях
-
-
-## Метрики качества
-
-- [ ]{id:metric after:gen} Что такое метрика и зачем нужны разные метрики под разные задачи
-- [ ]{id:metricvsloss after:metric,erm} Чем метрика отличается от функции потерь
-- [ ]{r id:properscoring after:metric} Proper scoring rules
-- [ ]{r id:calibration after:metric} Калибровка вероятностных предсказаний
-- [ ]{r id:pareto after:metricvsloss} Многокритериальное / Парето-оптимальное сравнение моделей
 
 
 ## Подбор гиперпараметров

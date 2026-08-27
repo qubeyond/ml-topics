@@ -7,8 +7,7 @@
 - [ ]{id:rl} Reinforcement learning
 - [ ]{id:hyp} Hypothesis space
 - [ ]{id:indbias after:hyp} Inductive bias
-- [ ]{id:param after:hyp} Parametric models
-- [ ]{id:nonparam after:hyp} Non-parametric models
+- [ ]{id:paramtype after:hyp} Parametric vs non-parametric models
 - [ ]{r id:meta after:hyp} Meta-learning (learning to learn)
 - [ ]{r id:online after:sgd} Online learning
 - [ ]{r id:multitask after:sup} Multi-task learning
@@ -22,11 +21,10 @@
 - [ ]{id:batchgd after:erm} Batch gradient descent
 - [ ]{id:sgd after:batchgd} Stochastic gradient descent
 - [ ]{id:minibatchgd after:sgd} Mini-batch gradient descent
-- [ ]{id:localmin after:batchgd} Local minima
-- [ ]{id:globalmin after:localmin} Global minima
+- [ ]{id:minima after:batchgd} Local vs global minima
 - [ ]{id:lr after:batchgd} Learning rate
 - [ ]{r id:srm after:erm} Structural risk minimization
-- [ ]{r id:saddle after:localmin} Saddle points in high-dimensional optimization
+- [ ]{r id:saddle after:minima} Saddle points in high-dimensional optimization
 - [ ]{r id:convrate after:lr} Convergence rates of gradient descent
 
 
@@ -45,30 +43,65 @@
 - [ ]{id:gen after:erm} Generalization
 - [ ]{id:overfit after:gen} Overfitting
 - [ ]{id:underfit after:gen} Underfitting
-- [ ]{id:bias after:overfit,underfit} Bias
-- [ ]{id:variance after:overfit,underfit} Variance
-- [ ]{id:lc after:bias,variance} Learning curves
-- [ ]{id:irr after:bias,variance} Irreducible error
+- [ ]{id:biasvar after:overfit,underfit} Bias-Variance Tradeoff (bias, variance, irreducible error)
+- [ ]{id:lc after:biasvar} Learning curves
 - [ ]{id:vc after:gen} VC dimension
 - [ ]{id:nfl after:gen} No Free Lunch theorem
 - [ ]{r id:pac after:vc} PAC learning
 - [ ]{r id:radem after:vc} Rademacher complexity
-- [ ]{r id:doubledesc after:bias,variance} Double descent phenomenon
+- [ ]{r id:doubledesc after:biasvar} Double descent phenomenon
 - [ ]{r id:algstab after:gen} Algorithmic stability
+
+
+## Task Types and Quality Metrics
+
+### Foundations
+
+- [ ]{id:metric after:gen} What a metric is and why different tasks need different metrics
+- [ ]{id:metricvsloss after:metric,erm} How metrics differ from loss functions
+- [ ]{r id:pareto after:metricvsloss} Multi-objective / Pareto-optimal model comparison
+
+### Types of ML Tasks
+
+- [ ]{id:taskclass after:sup} Classification (binary, multiclass, multilabel)
+- [ ]{id:taskreg after:sup} Regression
+- [ ]{r id:taskrank after:sup} Ranking
+- [ ]{r id:taskcluster after:unsup} Clustering
+
+### Classification Metrics
+
+- [ ]{id:accuracy after:taskclass,metric} Accuracy
+- [ ]{id:precrecall after:taskclass,metric} Precision and Recall
+- [ ]{id:f1 after:precrecall} F1-score
+- [ ]{id:rocauc after:taskclass,metric} ROC-AUC
+- [ ]{id:confmatrix after:taskclass} Confusion matrix
+- [ ]{r id:prauc after:rocauc} PR-AUC
+- [ ]{r id:properscoring after:rocauc} Proper scoring rules
+- [ ]{r id:calibration after:rocauc} Calibration of probabilistic predictions
+
+### Regression Metrics
+
+- [ ]{id:regmetrics after:taskreg,metric} MAE, MSE, RMSE as evaluation metrics
+- [ ]{id:r2 after:regmetrics} R² (coefficient of determination)
+- [ ]{r id:mape after:regmetrics} MAPE
+
+### Ranking and Clustering Metrics
+
+- [ ]{r id:rankmetrics after:taskrank} NDCG, MRR
+- [ ]{r id:clustermetrics after:taskcluster} Silhouette score, Adjusted Rand Index
 
 
 ## Loss Functions
 
-- [ ]{id:mse after:erm} MSE
-- [ ]{id:mae after:erm} MAE
+- [ ]{id:mse after:erm,regmetrics} MSE
+- [ ]{id:mae after:erm,regmetrics} MAE
 - [ ]{id:huber after:mse,mae} Huber loss
-- [ ]{id:ce after:mle} Cross-entropy
-- [ ]{id:hinge after:erm} Hinge loss
+- [ ]{id:ce after:mle,rocauc} Cross-entropy
+- [ ]{id:hinge after:erm,accuracy} Hinge loss
 - [ ]{id:logloss after:ce} Log-loss
-- [ ]{id:zeroone after:erm} 0/1 loss
-- [ ]{id:convex after:mse,hinge} Convex loss functions
-- [ ]{id:nonconvex after:convex} Non-convex loss functions
-- [ ]{r id:surrogate after:convex,zeroone} Surrogate loss functions and consistency
+- [ ]{id:zeroone after:erm,accuracy} 0/1 loss
+- [ ]{id:convexity after:mse,hinge} Convex vs non-convex loss functions
+- [ ]{r id:surrogate after:convexity,zeroone} Surrogate loss functions and consistency
 - [ ]{r id:bayesrisk after:zeroone,bayes} Bayes risk and the Bayes-optimal classifier
 - [ ]{r id:costsens after:zeroone} Cost-sensitive / asymmetric loss functions
 
@@ -96,15 +129,6 @@
 - [ ]{r id:dropout after:l2,bayes} Dropout as approximate Bayesian inference
 - [ ]{r id:dataaug after:overfit} Data augmentation as implicit regularization
 - [ ]{r id:implicitreg after:overfit} Implicit regularization in overparameterized models
-
-
-## Quality Metrics
-
-- [ ]{id:metric after:gen} What a metric is and why different tasks need different metrics
-- [ ]{id:metricvsloss after:metric,erm} How metrics differ from loss functions
-- [ ]{r id:properscoring after:metric} Proper scoring rules
-- [ ]{r id:calibration after:metric} Calibration of probabilistic predictions
-- [ ]{r id:pareto after:metricvsloss} Multi-objective / Pareto-optimal model comparison
 
 
 ## Hyperparameter Tuning
