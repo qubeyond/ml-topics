@@ -65,8 +65,14 @@
 
 - [ ]{id:taskclass after:sup} Классификация (бинарная, многоклассовая, многометочная)
 - [ ]{id:taskreg after:sup} Регрессия
-- [ ]{r id:taskrank after:sup} Ранжирование
-- [ ]{r id:taskcluster after:unsup} Кластеризация
+- [ ]{id:taskrank after:sup} Ранжирование
+- [ ]{id:taskcluster after:unsup} Кластеризация
+- [ ]{id:taskdimred after:unsup} Понижение размерности
+- [ ]{id:taskanomaly after:unsup} Поиск аномалий / выбросов
+- [ ]{id:taskforecast after:taskreg} Прогнозирование временных рядов
+- [ ]{r id:taskstructured after:taskclass} Структурное предсказание (разметка последовательностей, структурированный вывод)
+- [ ]{r id:taskactive after:taskclass,taskreg} Active learning (активное обучение — какие данные размечать)
+- [ ]{r id:tasksurvival after:taskreg} Survival-анализ (моделирование времени до события)
 
 ### Метрики классификации
 
@@ -75,7 +81,7 @@
 - [ ]{id:f1 after:precrecall} F1-score
 - [ ]{id:rocauc after:taskclass,metric} ROC-AUC
 - [ ]{id:confmatrix after:taskclass} Confusion matrix
-- [ ]{r id:prauc after:rocauc} PR-AUC
+- [ ]{id:prauc after:rocauc} PR-AUC
 - [ ]{r id:properscoring after:rocauc} Proper scoring rules
 - [ ]{r id:calibration after:rocauc} Калибровка вероятностных предсказаний
 
@@ -83,12 +89,18 @@
 
 - [ ]{id:regmetrics after:taskreg,metric} MAE, MSE, RMSE как метрики качества
 - [ ]{id:r2 after:regmetrics} R² (коэффициент детерминации)
-- [ ]{r id:mape after:regmetrics} MAPE
+- [ ]{id:mape after:regmetrics} MAPE
+- [ ]{r id:forecastmetrics after:taskforecast,regmetrics} SMAPE, MASE (метрики для прогнозирования)
 
-### Метрики ранжирования и кластеризации
+### Метрики ранжирования
 
-- [ ]{r id:rankmetrics after:taskrank} NDCG, MRR
-- [ ]{r id:clustermetrics after:taskcluster} Silhouette score, Adjusted Rand Index
+- [ ]{id:rankmetrics after:taskrank} NDCG, MRR
+- [ ]{r id:rankadvanced after:rankmetrics} MAP (Mean Average Precision) и learning-to-rank целевые функции
+
+### Метрики кластеризации
+
+- [ ]{id:clustermetrics after:taskcluster} Silhouette score
+- [ ]{r id:clusterari after:clustermetrics} Adjusted Rand Index (валидация кластеризации по разметке)
 
 
 ## Функции потерь

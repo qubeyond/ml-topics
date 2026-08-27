@@ -65,8 +65,14 @@
 
 - [ ]{id:taskclass after:sup} Classification (binary, multiclass, multilabel)
 - [ ]{id:taskreg after:sup} Regression
-- [ ]{r id:taskrank after:sup} Ranking
-- [ ]{r id:taskcluster after:unsup} Clustering
+- [ ]{id:taskrank after:sup} Ranking
+- [ ]{id:taskcluster after:unsup} Clustering
+- [ ]{id:taskdimred after:unsup} Dimensionality reduction
+- [ ]{id:taskanomaly after:unsup} Anomaly / outlier detection
+- [ ]{id:taskforecast after:taskreg} Time series forecasting
+- [ ]{r id:taskstructured after:taskclass} Structured prediction (sequence labeling, structured outputs)
+- [ ]{r id:taskactive after:taskclass,taskreg} Active learning (choosing what to label)
+- [ ]{r id:tasksurvival after:taskreg} Survival analysis (time-to-event modeling)
 
 ### Classification Metrics
 
@@ -75,7 +81,7 @@
 - [ ]{id:f1 after:precrecall} F1-score
 - [ ]{id:rocauc after:taskclass,metric} ROC-AUC
 - [ ]{id:confmatrix after:taskclass} Confusion matrix
-- [ ]{r id:prauc after:rocauc} PR-AUC
+- [ ]{id:prauc after:rocauc} PR-AUC
 - [ ]{r id:properscoring after:rocauc} Proper scoring rules
 - [ ]{r id:calibration after:rocauc} Calibration of probabilistic predictions
 
@@ -83,12 +89,18 @@
 
 - [ ]{id:regmetrics after:taskreg,metric} MAE, MSE, RMSE as evaluation metrics
 - [ ]{id:r2 after:regmetrics} R² (coefficient of determination)
-- [ ]{r id:mape after:regmetrics} MAPE
+- [ ]{id:mape after:regmetrics} MAPE
+- [ ]{r id:forecastmetrics after:taskforecast,regmetrics} SMAPE, MASE (forecasting-specific metrics)
 
-### Ranking and Clustering Metrics
+### Ranking Metrics
 
-- [ ]{r id:rankmetrics after:taskrank} NDCG, MRR
-- [ ]{r id:clustermetrics after:taskcluster} Silhouette score, Adjusted Rand Index
+- [ ]{id:rankmetrics after:taskrank} NDCG, MRR
+- [ ]{r id:rankadvanced after:rankmetrics} MAP (Mean Average Precision) and learning-to-rank objectives
+
+### Clustering Metrics
+
+- [ ]{id:clustermetrics after:taskcluster} Silhouette score
+- [ ]{r id:clusterari after:clustermetrics} Adjusted Rand Index (label-based cluster validation)
 
 
 ## Loss Functions
