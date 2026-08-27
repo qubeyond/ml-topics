@@ -403,11 +403,16 @@
   .item.practice input[type=checkbox]{border-color:var(--practice);}
   .item.practice input[type=checkbox]:checked{background:var(--practice);border-color:var(--practice);}
   .item.practice .code{color:var(--practice);opacity:.85;}
-  /* пункт помечен и {r}, и {p} сразу — чекбокс двухцветный (диагональный градиент),
-     код остаётся лиловым (research как основной цвет для текста) */
+  /* пункт помечен и {r}, и {p} сразу — чекбокс двухцветный (диагональный градиент).
+     border-image игнорирует border-radius (стал бы квадратным) — вместо него
+     трюк с двумя фоновыми слоями: внутренний padding-box перекрывает заливку,
+     внешний border-box просвечивает только в кольце рамки, форма остаётся круглой.
+     Код остаётся лиловым (research как основной цвет для текста) */
   .item.research.practice input[type=checkbox]{
     border-color:transparent;
-    border-image:linear-gradient(135deg, var(--research), var(--practice)) 1;
+    background:
+      linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
+      linear-gradient(135deg, var(--research), var(--practice)) border-box;
   }
   .item.research.practice input[type=checkbox]:checked{
     background:linear-gradient(135deg, var(--research), var(--practice));
@@ -446,7 +451,12 @@
   .graph-node-dot.research.checked{background:var(--research);border-color:var(--research);}
   .graph-node-dot.practice{border-color:var(--practice);}
   .graph-node-dot.practice.checked{background:var(--practice);border-color:var(--practice);}
-  .graph-node-dot.research.practice{border-color:transparent;border-image:linear-gradient(135deg, var(--research), var(--practice)) 1;}
+  .graph-node-dot.research.practice{
+    border-color:transparent;
+    background:
+      linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
+      linear-gradient(135deg, var(--research), var(--practice)) border-box;
+  }
   .graph-node-dot.research.practice.checked{background:linear-gradient(135deg, var(--research), var(--practice));border-color:transparent;}
   .graph-node-dot.dragging{transform:scale(1.4);}
   .graph-node-label{
@@ -474,12 +484,14 @@
       background:var(--card-bg);
       box-shadow:var(--shadow-1);
       overflow:hidden;
-      cursor:pointer;
+      cursor:grab;
+      touch-action:none;
       z-index:45;
       transition:border-color .15s ease, box-shadow .15s ease;
     }
     .graph-mini:hover{border-color:var(--fg);box-shadow:var(--shadow-2);}
   }
+  .graph-mini .panning{cursor:grabbing;}
   .graph-mini-label{
     position:absolute;top:8px;left:10px;font-size:10px;text-transform:uppercase;
     letter-spacing:.07em;color:var(--muted);font-weight:700;z-index:2;
@@ -514,13 +526,30 @@
     display:flex;align-items:center;justify-content:space-between;
     padding:16px 20px;border-bottom:1px solid var(--border);
     flex-shrink:0;gap:12px;
+    position:relative;
   }
   .graph-overlay-head h3{margin:0;font-size:15px;}
+  .graph-overlay-head-actions{display:flex;gap:8px;flex-shrink:0;}
+  .graph-parts-popover{
+    position:absolute;top:100%;right:20px;margin-top:6px;
+    background:var(--card-bg);border:1px solid var(--border);border-radius:12px;
+    box-shadow:var(--shadow-2);padding:10px;z-index:5;
+    display:flex;flex-direction:column;gap:2px;
+    max-height:min(340px, 60vh);overflow-y:auto;
+    width:min(280px, 80vw);
+  }
+  .graph-parts-opt{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 8px;border-radius:8px;font-size:12.5px;cursor:pointer;
+  }
+  .graph-parts-opt:hover{background:var(--track);}
+  .graph-parts-opt input{flex-shrink:0;}
   /* фон "в точечку", как разлиновка на бумаге для графов — двигается вместе с камерой (JS) */
   .graph-overlay-body{
     flex:1;position:relative;overflow:hidden;cursor:grab;
     background-color:var(--card-bg);
     background-image:radial-gradient(circle, var(--border) 1.2px, transparent 1.2px);
+    touch-action:none;
   }
   .graph-overlay-body.panning{cursor:grabbing;}
   @media (max-width:640px){
@@ -583,8 +612,8 @@
       confirmBtn: "Сбросить",
       resetConfirm: function(title){ return 'Сбросить прогресс по разделу «' + title + '»?'; },
       notFound: "Категория не найдена.",
-      researchHint: "Необязательная тема углублённого уровня — не входит в основной %, даёт бонус сверху",
-      practiceHint: "Практическое задание — не входит в основной %, даёт бонус сверху",
+      researchHint: "Тема углублённого уровня",
+      practiceHint: "Практическое задание",
       completedOn: function(date){ return "Пройдено: " + date; },
       syncing: "Синк…",
       synced: function(login){ return "Синк: " + login; },
@@ -611,7 +640,8 @@
       domainMath: "Математика",
       graphBtn: "Граф зависимостей",
       graphMiniLabel: "Граф",
-      graphEmpty: "Для этого курса граф ещё не размечен."
+      graphEmpty: "Для этого курса граф ещё не размечен.",
+      graphPartsBtn: "Показать только выбранные части"
     },
     en: {
       partWord: "Part",
@@ -623,8 +653,8 @@
       confirmBtn: "Reset",
       resetConfirm: function(title){ return "Reset progress for “" + title + "”?"; },
       notFound: "Category not found.",
-      researchHint: "Optional deep-dive topic — outside the main %, counts as a bonus on top",
-      practiceHint: "Hands-on exercise — outside the main %, counts as a bonus on top",
+      researchHint: "Deep-dive topic",
+      practiceHint: "Hands-on exercise",
       completedOn: function(date){ return "Completed: " + date; },
       syncing: "Syncing…",
       synced: function(login){ return "Sync: " + login; },
@@ -651,7 +681,8 @@
       domainMath: "Math",
       graphBtn: "Dependency graph",
       graphMiniLabel: "Graph",
-      graphEmpty: "No graph annotated for this course yet."
+      graphEmpty: "No graph annotated for this course yet.",
+      graphPartsBtn: "Show only selected parts"
     }
   };
   function t(){ return STRINGS[LANG]; }
@@ -1373,8 +1404,9 @@
   // см. buildGraph()/parseTags() выше; сами узлы/связи не выводятся
   // автоматически из структуры Part/Section/Item.
   // ---------------------------------------------------------------------
-  var ICON_GRAPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"></circle><circle cx="18" cy="6" r="3"></circle><circle cx="12" cy="18" r="3"></circle><line x1="8.6" y1="7.6" x2="10.5" y2="16"></line><line x1="15.4" y1="7.6" x2="13.5" y2="16"></line><line x1="9" y1="6" x2="15" y2="6"></line></svg>';
+  var ICON_GRAPH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="6" r="2.1"></circle><circle cx="19" cy="6" r="2.1"></circle><circle cx="12" cy="13" r="2.1"></circle><circle cx="5" cy="19" r="2.1"></circle><circle cx="19" cy="19" r="2.1"></circle><line x1="6.6" y1="7.3" x2="10.5" y2="11.4"></line><line x1="17.4" y1="7.3" x2="13.5" y2="11.4"></line><line x1="10.5" y1="14.6" x2="6.6" y2="17.7"></line><line x1="13.5" y1="14.6" x2="17.4" y2="17.7"></line></svg>';
   var ICON_EXPAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>';
+  var ICON_FILTER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="4 4 20 4 14 12 14 19 10 21 10 12 4 4"></polygon></svg>';
 
   var D3_SRC = "https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js";
   var d3Promise = null;
@@ -1433,8 +1465,105 @@
     return (n.research ? " research" : "") + (n.practice ? " practice" : "");
   }
 
-  // мини-превью (Obsidian-style точки, без взаимодействия с камерой):
-  // один прогон физики, статичный "слепок", уместившийся в контейнер целиком.
+  // степень узла (кол-во рёбер) — изолированные узлы (0 связей) получают
+  // более сильное центрирование, иначе их разбрасывает случайным зарядом
+  // далеко от основного облака (см. правки этой сессии по жалобе "точки
+  // болтаются далеко от центра")
+  function degreeMap(simEdges){
+    var deg = {};
+    simEdges.forEach(function(e){
+      deg[e.sourceCode] = (deg[e.sourceCode] || 0) + 1;
+      deg[e.targetCode] = (deg[e.targetCode] || 0) + 1;
+    });
+    return deg;
+  }
+
+  // общая камера графа: драг (мышь/тач) — панорама, колесо — зум к курсору,
+  // два пальца — pinch-zoom к их середине. Используется и мини-превью, и
+  // фулскрин-графом, чтобы не дублировать пан/зум/pinch логику дважды.
+  function bindGraphCamera(container, camera, onApply, opts){
+    opts = opts || {};
+    var pointers = {};
+    var panState = null, pinchState = null;
+    var dragDist = 0;
+
+    function dist(a, b){ return Math.hypot(a.x - b.x, a.y - b.y); }
+    function mid(a, b){ return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+
+    container.addEventListener("pointerdown", function(e){
+      if(opts.panExclude && e.target.closest(opts.panExclude)) return;
+      pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      try { container.setPointerCapture(e.pointerId); } catch(err){}
+      var ids = Object.keys(pointers);
+      if(ids.length === 2){
+        panState = null;
+        var a = pointers[ids[0]], b = pointers[ids[1]];
+        pinchState = { startDist: Math.max(dist(a, b), 1), startK: camera.k, camX: camera.x, camY: camera.y, startMid: mid(a, b) };
+      } else if(ids.length === 1){
+        dragDist = 0;
+        panState = { x: e.clientX, y: e.clientY, camX: camera.x, camY: camera.y };
+        container.classList.add("panning");
+      }
+    });
+
+    container.addEventListener("pointermove", function(e){
+      if(!(e.pointerId in pointers)) return;
+      pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var ids = Object.keys(pointers);
+      var rect = container.getBoundingClientRect();
+      if(ids.length === 2 && pinchState){
+        var a = pointers[ids[0]], b = pointers[ids[1]];
+        var newK = Math.min(camera.kMax, Math.max(camera.kMin, pinchState.startK * (dist(a, b) / pinchState.startDist)));
+        var m0x = pinchState.startMid.x - rect.left, m0y = pinchState.startMid.y - rect.top;
+        var worldX = (m0x - pinchState.camX) / pinchState.startK, worldY = (m0y - pinchState.camY) / pinchState.startK;
+        var m1 = mid(a, b);
+        camera.k = newK;
+        camera.x = (m1.x - rect.left) - worldX * newK;
+        camera.y = (m1.y - rect.top) - worldY * newK;
+        onApply();
+      } else if(ids.length === 1 && panState){
+        dragDist += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0);
+        camera.x = panState.camX + (e.clientX - panState.x);
+        camera.y = panState.camY + (e.clientY - panState.y);
+        onApply();
+      }
+    });
+
+    function endPointer(e){
+      delete pointers[e.pointerId];
+      var ids = Object.keys(pointers);
+      pinchState = null;
+      if(ids.length === 1){
+        panState = { x: pointers[ids[0]].x, y: pointers[ids[0]].y, camX: camera.x, camY: camera.y };
+      } else {
+        panState = null;
+        container.classList.remove("panning");
+      }
+    }
+    container.addEventListener("pointerup", endPointer);
+    container.addEventListener("pointercancel", endPointer);
+
+    container.addEventListener("wheel", function(e){
+      e.preventDefault();
+      var rect = container.getBoundingClientRect();
+      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      var worldX = (mx - camera.x) / camera.k, worldY = (my - camera.y) / camera.k;
+      var factor = Math.exp(-e.deltaY * 0.0012);
+      var newK = Math.min(camera.kMax, Math.max(camera.kMin, camera.k * factor));
+      camera.k = newK;
+      camera.x = mx - worldX * newK;
+      camera.y = my - worldY * newK;
+      onApply();
+    }, { passive: false });
+
+    // "одноразовый" флаг: читаем и сразу гасим, иначе значение от старого
+    // жеста утечёт в следующий несвязанный клик (например, по кнопке "развернуть")
+    return { didDrag: function(){ var v = dragDist > 4; dragDist = 0; return v; } };
+  }
+
+  // мини-превью (Obsidian-style точки): физика прогоняется один раз и
+  // "замораживается" (для дешёвого рендера), но камера (пан/зум/pinch,
+  // включая колесо при наведении) — живая, как и просили.
   function mountMiniGraphSim(container, catId){
     var graph = CATALOG[catId].graph;
     var w = container.clientWidth || 200, h = container.clientHeight || 200;
@@ -1446,7 +1575,8 @@
     simNodes.forEach(function(n){ byCode[n.code] = n; });
     var simEdges = graph.edges
       .filter(function(e){ return byCode[e.source] && byCode[e.target]; })
-      .map(function(e){ return { sourceCode: e.source, targetCode: e.target }; });
+      .map(function(e){ return { source: e.source, target: e.target, sourceCode: e.source, targetCode: e.target }; });
+    var degree = degreeMap(simEdges);
 
     var maxLevel = simNodes.reduce(function(m, n){ return Math.max(m, n.level); }, 0);
     var DOT = 7;
@@ -1461,9 +1591,11 @@
     var svg = document.createElementNS(svgNS, "svg");
     svg.setAttribute("class", "graph-edges");
     canvas.appendChild(svg);
+    var g = document.createElementNS(svgNS, "g");
+    svg.appendChild(g);
     var lineEls = simEdges.map(function(){
       var line = document.createElementNS(svgNS, "line");
-      svg.appendChild(line);
+      g.appendChild(line);
       return line;
     });
 
@@ -1473,20 +1605,19 @@
 
     var nodeEls = {};
     simNodes.forEach(function(n){
-      n.x = w / 2 + (Math.random() - 0.5) * Math.min(w * 0.7, 420);
+      n.x = (Math.random() - 0.5) * Math.min(w * 0.7, 300);
       n.y = 26 + n.level * levelGap + (Math.random() - 0.5) * 8;
       var el = graphDotEl(n, catId);
       el.style.width = DOT + "px";
       el.style.height = DOT + "px";
+      el.style.left = "0"; el.style.top = "0";
       nodesLayer.appendChild(el);
       nodeEls[n.code] = el;
     });
 
     function paint(){
       simNodes.forEach(function(n){
-        var el = nodeEls[n.code];
-        el.style.left = (n.x - DOT / 2) + "px";
-        el.style.top = (n.y - DOT / 2) + "px";
+        nodeEls[n.code].style.transform = "translate(" + (n.x - DOT / 2) + "px," + (n.y - DOT / 2) + "px)";
       });
       simEdges.forEach(function(e, i){
         var s = byCode[e.sourceCode], tn = byCode[e.targetCode];
@@ -1497,23 +1628,33 @@
     }
 
     var sim = d3.forceSimulation(simNodes)
-      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(14).strength(0.6))
-      .force("charge", d3.forceManyBody().strength(-14))
-      .force("collide", d3.forceCollide(5))
-      .force("x", d3.forceX(w / 2).strength(0.03))
+      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(16).strength(0.7))
+      .force("charge", d3.forceManyBody().strength(-16))
+      .force("collide", d3.forceCollide(7))
+      .force("x", d3.forceX(0).strength(function(n){ return degree[n.code] ? 0.03 : 0.15; }))
       .force("y", d3.forceY(function(n){ return 26 + n.level * levelGap; }).strength(0.4))
       .stop();
     for(var i = 0; i < 300; i++) sim.tick();
+    paint();
 
+    // камера: сама подстраивается под контейнер целиком (мин = всё видно)
     var xs = simNodes.map(function(n){ return n.x; });
     var ys = simNodes.map(function(n){ return n.y; });
-    var minX = Math.min.apply(null, xs) - DOT / 2, maxX = Math.max.apply(null, xs) + DOT / 2;
-    var minY = Math.min.apply(null, ys) - DOT / 2, maxY = Math.max.apply(null, ys) + DOT / 2;
-    var gw = Math.max(maxX - minX, 1), gh = Math.max(maxY - minY, 1);
-    var k = Math.min(w / gw, h / gh, 1) * 0.92;
-    var ox = w / 2 - (minX + maxX) / 2 * k, oy = h / 2 - (minY + maxY) / 2 * k;
-    simNodes.forEach(function(n){ n.x = n.x * k + ox; n.y = n.y * k + oy; });
-    paint();
+    var minX = Math.min.apply(null, xs), maxX = Math.max.apply(null, xs);
+    var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
+    var gw = Math.max(maxX - minX, 20) + 30, gh = Math.max(maxY - minY, 20) + 30;
+    var kFit = Math.min(w / gw, h / gh, 1);
+    var camera = { x: w / 2 - (minX + maxX) / 2 * kFit, y: h / 2 - (minY + maxY) / 2 * kFit, k: kFit, kMin: kFit * 0.6, kMax: kFit * 4 };
+
+    function applyCamera(){
+      var t = "translate(" + camera.x + "px," + camera.y + "px) scale(" + camera.k + ")";
+      nodesLayer.style.transform = t;
+      nodesLayer.style.transformOrigin = "0 0";
+      g.setAttribute("transform", "translate(" + camera.x + "," + camera.y + ") scale(" + camera.k + ")");
+    }
+    applyCamera();
+
+    var cam = bindGraphCamera(container, camera, applyCamera, { panExclude: ".graph-node" });
 
     Object.keys(nodeEls).forEach(function(code){
       nodeEls[code].addEventListener("click", function(e){
@@ -1524,27 +1665,41 @@
       });
     });
 
-    return { stop: function(){ sim.stop(); } };
+    return { stop: function(){ sim.stop(); }, didDrag: cam.didDrag };
   }
 
   // фулскрин-граф: живая физика, точки с подписью сверху, камера (панорама
   // зажатой мышкой + зум колёсиком) вместо скролла контейнера.
-  function mountInteractiveGraph(container, catId){
+  // partIds: если задан (набор кодов частей "I","II",...) — граф строится
+  // только по узлам/рёбрам этих частей (для фильтра по частям в шапке оверлея)
+  function mountInteractiveGraph(container, catId, partIds){
     var graph = CATALOG[catId].graph;
     var w = container.clientWidth || 800, h = container.clientHeight || 600;
-    var levels = computeGraphLevels(graph.nodes, graph.edges);
-    var simNodes = graph.nodes.map(function(n){
+    var nodesSrc = graph.nodes;
+    var edgesSrc = graph.edges;
+    if(partIds){
+      var allowedCodes = {};
+      nodesSrc = nodesSrc.filter(function(n){
+        var partCode = n.code.split(".")[0];
+        var keep = partIds.indexOf(partCode) !== -1;
+        if(keep) allowedCodes[n.code] = true;
+        return keep;
+      });
+      edgesSrc = edgesSrc.filter(function(e){ return allowedCodes[e.source] && allowedCodes[e.target]; });
+    }
+    var levels = computeGraphLevels(nodesSrc, edgesSrc);
+    var simNodes = nodesSrc.map(function(n){
       return { code: n.code, text: n.text, research: !!n.research, practice: !!n.practice, level: levels[n.code] || 0 };
     });
     var byCode = {};
     simNodes.forEach(function(n){ byCode[n.code] = n; });
     // d3.forceLink() мутирует .source/.target из строк-кодов в ссылки на
     // узлы прямо на первом тике — держим исходные коды отдельно для paint()
-    var simEdges = graph.edges
+    var simEdges = edgesSrc
       .filter(function(e){ return byCode[e.source] && byCode[e.target]; })
       .map(function(e){ return { source: e.source, target: e.target, sourceCode: e.source, targetCode: e.target }; });
+    var degree = degreeMap(simEdges);
 
-    var maxLevel = simNodes.reduce(function(m, n){ return Math.max(m, n.level); }, 0);
     var DOT = 12;
     var levelGap = 90;
 
@@ -1581,6 +1736,7 @@
       dot.className = "graph-node-dot" + cls;
       dot.style.width = DOT + "px";
       dot.style.height = DOT + "px";
+      dot.style.left = "0"; dot.style.top = "0";
       dot.dataset.code = n.code;
       nodesLayer.appendChild(dot);
       dotEls[n.code] = dot;
@@ -1588,18 +1744,18 @@
       var label = document.createElement("div");
       label.className = "graph-node-label" + cls;
       label.textContent = n.text;
+      label.style.left = "0"; label.style.top = "0";
       label.dataset.code = n.code;
       nodesLayer.appendChild(label);
       labelEls[n.code] = label;
     });
 
+    // позиционируем через transform (не left/top) — дешевле для лэйаута,
+    // важно на мобильных при непрерывном тике живой физики
     function paint(){
       simNodes.forEach(function(n){
-        var dot = dotEls[n.code], label = labelEls[n.code];
-        dot.style.left = (n.x - DOT / 2) + "px";
-        dot.style.top = (n.y - DOT / 2) + "px";
-        label.style.left = n.x + "px";
-        label.style.top = (n.y - DOT / 2 - 6) + "px";
+        dotEls[n.code].style.transform = "translate(" + (n.x - DOT / 2) + "px," + (n.y - DOT / 2) + "px)";
+        labelEls[n.code].style.transform = "translate(" + n.x + "px," + (n.y - DOT / 2 - 6) + "px) translate(-50%,-100%)";
       });
       simEdges.forEach(function(e, i){
         var s = byCode[e.sourceCode], tn = byCode[e.targetCode];
@@ -1610,18 +1766,19 @@
     }
 
     var sim = d3.forceSimulation(simNodes)
-      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(70).strength(0.6))
-      .force("charge", d3.forceManyBody().strength(-260))
-      .force("collide", d3.forceCollide(34))
-      .force("x", d3.forceX(0).strength(0.03))
-      .force("y", d3.forceY(function(n){ return n.level * levelGap; }).strength(0.4))
+      .force("link", d3.forceLink(simEdges).id(function(n){ return n.code; }).distance(80).strength(0.7))
+      .force("charge", d3.forceManyBody().strength(-220))
+      .force("collide", d3.forceCollide(50))
+      // изолированные узлы (без единой связи) тянет к центру сильнее — иначе
+      // случайный заряд разбрасывает их далеко от общего облака
+      .force("x", d3.forceX(0).strength(function(n){ return degree[n.code] ? 0.05 : 0.22; }))
+      .force("y", d3.forceY(function(n){ return n.level * levelGap; }).strength(0.5))
       .stop();
     // разогрев физики, чтобы сразу было что центрировать в камере, без прыжка на первом кадре
-    for(var wi = 0; wi < 80; wi++) sim.tick();
+    for(var wi = 0; wi < 120; wi++) sim.tick();
 
-    // ---------------- камера: панорама зажатой мышкой + зум колёсиком ----------------
-    var camera = { x: 0, y: 0, k: 1 };
-    var kMin = 0.2, kMax = 2.5;
+    // ---------------- камера: панорама/pinch (тач и мышь) + зум колёсиком ----------------
+    var camera = { x: 0, y: 0, k: 1, kMin: 0.2, kMax: 2.5 };
 
     function fitToView(){
       var xs = simNodes.map(function(n){ return n.x; });
@@ -1630,8 +1787,8 @@
       var minY = Math.min.apply(null, ys), maxY = Math.max.apply(null, ys);
       var gw = Math.max(maxX - minX, 80) + 120, gh = Math.max(maxY - minY, 80) + 120;
       var kFit = Math.min(w / gw, h / gh);
-      kMin = Math.min(kFit, 1);
-      kMax = Math.max(kFit * 4, 1.6);
+      camera.kMin = Math.min(kFit, 1);
+      camera.kMax = Math.max(kFit * 4, 1.6);
       camera.k = kFit;
       camera.x = w / 2 - (minX + maxX) / 2 * kFit;
       camera.y = h / 2 - (minY + maxY) / 2 * kFit;
@@ -1652,37 +1809,7 @@
     sim.on("tick", paint);
     sim.alpha(0.4).restart();
 
-    // панорама фона (drag по пустому месту, не по узлу)
-    var panState = null;
-    container.addEventListener("pointerdown", function(e){
-      if(e.target.closest(".graph-node-dot, .graph-node-label")) return;
-      panState = { x: e.clientX, y: e.clientY, camX: camera.x, camY: camera.y };
-      container.classList.add("panning");
-      try { container.setPointerCapture(e.pointerId); } catch(err){}
-    });
-    container.addEventListener("pointermove", function(e){
-      if(!panState) return;
-      camera.x = panState.camX + (e.clientX - panState.x);
-      camera.y = panState.camY + (e.clientY - panState.y);
-      applyCamera();
-    });
-    function endPan(){ panState = null; container.classList.remove("panning"); }
-    container.addEventListener("pointerup", endPan);
-    container.addEventListener("pointercancel", endPan);
-
-    // зум колёсиком к курсору, зажат в [kMin, kMax] (kMin = помещаются все темы)
-    container.addEventListener("wheel", function(e){
-      e.preventDefault();
-      var rect = container.getBoundingClientRect();
-      var mx = e.clientX - rect.left, my = e.clientY - rect.top;
-      var worldX = (mx - camera.x) / camera.k, worldY = (my - camera.y) / camera.k;
-      var factor = Math.exp(-e.deltaY * 0.0012);
-      var newK = Math.min(kMax, Math.max(kMin, camera.k * factor));
-      camera.k = newK;
-      camera.x = mx - worldX * newK;
-      camera.y = my - worldY * newK;
-      applyCamera();
-    }, { passive: false });
+    bindGraphCamera(container, camera, applyCamera, { panExclude: ".graph-node-dot, .graph-node-label" });
 
     // клик/драг узла — своя логика на точке и на подписи одного узла разом
     function bindNode(code){
@@ -1763,6 +1890,7 @@
 
     miniWrap.addEventListener("click", function(e){
       if(e.target.closest(".graph-node")) return;
+      if(miniGraphSim && miniGraphSim.didDrag && miniGraphSim.didDrag()) return; // клик после панорамы — не открываем
       openGraphOverlay(catId);
     });
 
@@ -1776,34 +1904,81 @@
     var cat = CATALOG[catId];
     if(!cat || !cat.graph || !cat.graph.nodes.length) return;
 
+    var partOptions = cat.parts.filter(function(p){ return p.title; });
+    var selectedParts = null; // null = все части
+
     var backdrop = document.createElement("div");
     backdrop.className = "graph-overlay-backdrop";
     backdrop.innerHTML =
       '<div class="graph-overlay">' +
         '<div class="graph-overlay-head">' +
           '<h3>' + escapeHtml(cat.title) + ' — ' + escapeHtml(t().graphBtn) + '</h3>' +
-          '<button type="button" class="icon-btn graph-overlay-close" aria-label="' + escapeHtml(t().syncClose) + '">' + ICON_CLOSE + '</button>' +
+          '<div class="graph-overlay-head-actions">' +
+            (partOptions.length > 1 ?
+              '<button type="button" class="icon-btn graph-parts-btn" aria-label="' + escapeHtml(t().graphPartsBtn) + '" title="' + escapeHtml(t().graphPartsBtn) + '">' + ICON_FILTER + '</button>'
+              : '') +
+            '<button type="button" class="icon-btn graph-overlay-close" aria-label="' + escapeHtml(t().syncClose) + '">' + ICON_CLOSE + '</button>' +
+          '</div>' +
         '</div>' +
+        (partOptions.length > 1 ?
+          '<div class="graph-parts-popover" hidden>' +
+            partOptions.map(function(p){
+              return '<label class="graph-parts-opt"><input type="checkbox" checked value="' + escapeHtml(p.code) + '">' + escapeHtml(p.code) + '. ' + escapeHtml(p.title) + '</label>';
+            }).join("") +
+          '</div>'
+          : '') +
         '<div class="graph-overlay-body"></div>' +
       '</div>';
     document.body.appendChild(backdrop);
+
+    // назад на мобилке (жест/аппаратная кнопка) должен закрывать граф, а не
+    // "выходить" из курса — держим для этого отдельный history-стейт: если
+    // закрываем сами (крестик/esc/клик по фону), гасим его через history.back(),
+    // если закрыли именно кнопкой "назад" — popstate уже сам всё сделал
+    var closedByPop = false;
+    history.pushState({ graphOverlay: true }, "", location.href);
 
     var sim = null;
     function close(){
       if(sim) sim.stop();
       document.removeEventListener("keydown", onKey);
+      window.removeEventListener("popstate", onPopState);
       backdrop.remove();
       renderDetail(catId); // на случай если внутри графа отмечали темы
+      if(!closedByPop) history.back();
     }
+    function onPopState(){ closedByPop = true; close(); }
     function onKey(e){ if(e.key === "Escape") close(); }
     document.addEventListener("keydown", onKey);
+    window.addEventListener("popstate", onPopState);
     backdrop.addEventListener("click", function(e){ if(e.target === backdrop) close(); });
     backdrop.querySelector(".graph-overlay-close").addEventListener("click", close);
 
     var body = backdrop.querySelector(".graph-overlay-body");
+    var popover = backdrop.querySelector(".graph-parts-popover");
+    var partsBtn = backdrop.querySelector(".graph-parts-btn");
+
+    function remount(){
+      if(sim) sim.stop();
+      sim = mountInteractiveGraph(body, catId, selectedParts);
+    }
+
+    if(partsBtn){
+      partsBtn.addEventListener("click", function(e){
+        e.stopPropagation();
+        popover.hidden = !popover.hidden;
+      });
+      popover.addEventListener("change", function(){
+        var boxes = Array.prototype.slice.call(popover.querySelectorAll("input[type=checkbox]"));
+        var checked = boxes.filter(function(b){ return b.checked; }).map(function(b){ return b.value; });
+        selectedParts = checked.length === boxes.length ? null : checked;
+        remount();
+      });
+    }
+
     ensureD3().then(function(){
       if(!document.body.contains(backdrop)) return;
-      sim = mountInteractiveGraph(body, catId);
+      remount();
     }).catch(function(){});
   }
 
